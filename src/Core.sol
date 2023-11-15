@@ -6,8 +6,10 @@ import  {AccountDeployer} from "@main/AccountDeployer.sol";
 
 contract Core is AccountDeployer, NoDelegateCall {
 
+    // store all states
+    // add a redeployable stateless router to query the address
 
-    mapping(bytes32 => address) public getAccount;
+    mapping(bytes32 => address) public getAccountByCommitment;
 
 
     function createAccount(
@@ -16,8 +18,20 @@ contract Core is AccountDeployer, NoDelegateCall {
 
         //sanity check for commitment
         account = deploy(address(this), commitment);
-        getAccount[commitment] = account;
+        getAccountByCommitment[commitment] = account;
+        
+
     }
+
+    // set
+    // 1) insert
+    // 2) withdraw
+
+    // get
+    // 1) stat (loop)
+    // 2) balance
+
+
     
 
 
