@@ -9,6 +9,7 @@ interface IAccountDeployer {
         view
         returns (
             address factory,
-            bytes32 commitment
+            bytes32 commitment,
+            uint256 paymentNumber
         );
 }

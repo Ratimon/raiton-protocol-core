@@ -3,6 +3,8 @@ pragma solidity =0.8.20;
 
 interface ICore {
 
+    
+
     function stats()
         external
         view

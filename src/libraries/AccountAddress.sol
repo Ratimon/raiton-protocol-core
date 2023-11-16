@@ -5,8 +5,7 @@ library AccountAddress {
     // hardcoded
     bytes32 internal constant ACCOUNT_INIT_CODE_HASH = bytes32(0);
 
-    function computeAddress(address factory, bytes32 commitment) internal pure returns (address account) {
-
+    function computeAddress(address factory, bytes32 commitment,uint256 paymentNumber) internal pure returns (address account) {
 
         account = address(
             uint160(
@@ -15,7 +14,7 @@ library AccountAddress {
                         abi.encodePacked(
                             hex'ff',
                             factory,
-                            keccak256(abi.encode(commitment)),
+                            keccak256(abi.encode(commitment, paymentNumber)),
                             ACCOUNT_INIT_CODE_HASH
                         )
                     )
