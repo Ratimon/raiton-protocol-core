@@ -1,25 +1,14 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {Account} from "@main/Account.sol";
+interface ICore {
 
-contract Core {
-
-    
-
-    function accountCodeHash() external pure returns (bytes32) {
-        return keccak256(type(Account).creationCode);
-    }
-
-    function createPool() private {
-
-        // check if address(this) is not blacklist
-
-        // deposit();
-
-        // checkIfETHalreadydposited
-
-
-    }
+    function stats()
+        external
+        view
+        returns (
+            uint256 averageLiquidityCoverageRatio,
+            uint256 totalAccountTurnOver
+        );  
 
 }

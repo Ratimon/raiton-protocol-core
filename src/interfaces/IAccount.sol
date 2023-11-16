@@ -9,7 +9,6 @@ interface IAccount {
     event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
 
     // ----------- State changing api -----------
-
     function deposit(
         // bytes calldata _proof,
         bytes32 newRoot
