@@ -10,6 +10,7 @@ interface IAccountDeployer {
         returns (
             address factory,
             bytes32 commitment,
+            uint256 denomination,
             uint256 paymentNumber
         );
 }

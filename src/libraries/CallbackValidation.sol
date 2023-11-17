@@ -11,9 +11,10 @@ library CallbackValidation {
     function verifyCallback(
         address factory,
         bytes32 commitment,
+        uint256 denomination,
         uint256 paymentNumber
     ) internal view returns (ICore pool) {
-        pool = ICore(AccountAddress.computeAddress(factory, commitment, paymentNumber));
+        pool = ICore(AccountAddress.computeAddress(factory, commitment,denomination, paymentNumber));
         require(msg.sender == address(pool));
     }
 

@@ -11,7 +11,7 @@ import  {ICore} from "@main/interfaces/ICore.sol";
 
 contract Account  {
 
-    //call relevant states from factoely which store merkle roots
+    //call relevant states from factory which store merkle roots
     address public immutable factory;
 
     uint256 public denomination;
@@ -22,7 +22,7 @@ contract Account  {
     constructor() {
         // may remove commitment or replace with new one
         bytes32 commitment;
-        ( factory, commitment, paymentNumber) = IAccountDeployer(msg.sender).parameters();
+        ( factory, commitment, denomination, paymentNumber) = IAccountDeployer(msg.sender).parameters();
     }
     
     // function commit(

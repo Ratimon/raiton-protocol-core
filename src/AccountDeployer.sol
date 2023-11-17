@@ -10,6 +10,7 @@ contract AccountDeployer is IAccountDeployer {
     struct Parameters {
         address factory;
         bytes32 commitment;
+        uint256 denomination;
         uint256 paymentNumber;
     }
 
@@ -18,10 +19,11 @@ contract AccountDeployer is IAccountDeployer {
     function deploy(
         address factory,
         bytes32 commitment,
+        uint256 denomination,
         uint256 paymentNumber
     ) internal returns (address account) {
-        parameters = Parameters({factory: factory, commitment: commitment, paymentNumber: paymentNumber});
-        account = address(new Account{salt: keccak256(abi.encode(commitment, paymentNumber))}());
+        parameters = Parameters({factory: factory, commitment: commitment, denomination: denomination, paymentNumber: paymentNumber});
+        account = address(new Account{salt: keccak256(abi.encode(commitment,denomination, paymentNumber))}());
         delete parameters;
     }
 

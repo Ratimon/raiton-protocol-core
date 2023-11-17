@@ -56,7 +56,7 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
     ) external noDelegateCall returns (address account) {
 
         //sanity check for commitment
-        account = deploy(address(this), commitment, paymentNumber);
+        account = deploy(address(this), commitment, denomination, paymentNumber);
         getAccountByCommitment[commitment] = account;
         
     }
@@ -78,7 +78,7 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
 
         // only callable by account (msg.sender)
         // TODO check if we need to include denomination
-        CallbackValidation.verifyCallback(msg.sender, _commitment, paymentNumber);
+        CallbackValidation.verifyCallback(msg.sender, _commitment, denomination, paymentNumber);
 
         pendingCommit[_caller] = _commitment;
     }
