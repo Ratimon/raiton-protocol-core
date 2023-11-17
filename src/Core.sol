@@ -24,9 +24,19 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
     uint256 public denomination;
     uint256 public paymentNumber;
 
+    // TODO ?
+    mapping(bytes32 => bool) public submittedCommitments;
+     // TODO ? do we need?
+    mapping(bytes32 => address) public getAccountByCommitment;
+
+    // TODO ?
+    mapping(address => bytes32) public getCommitmentByAccount;
+    // TODO ?
+    mapping(address => bytes32) public getCommitmentByDepositor;
+    // TODO ? redundant with getCommitmentByDepositor?
     mapping(address => bytes32) pendingCommit;
 
-    mapping(bytes32 => address) public getAccountByCommitment;
+    // TODO  new sorted array by balance of account
 
     /// @notice Array of all Accounts held in the Protocol. Used for iteration on accounts
     address[] private accountsInPool;
@@ -38,6 +48,9 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
 
     uint256 rotateCounter;
     uint256 rotateCounterCumulativeLast;
+
+
+
 
     constructor(
         IHasher _hasher,
@@ -51,13 +64,27 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
     }
 
 
-    function createAccount(
-        bytes32 commitment
+    // TODO  fee entrance to prevent DOS?
+    // TODO  pausaable / re-entrancy libs ? 
+    // TODO whoever can create their smart contract and deploly to participate 
+    function commit_1stPhase_Account(
+        bytes32 _commitment
     ) external noDelegateCall returns (address account) {
 
-        //sanity check for commitment
-        account = deploy(address(this), commitment, denomination, paymentNumber);
-        getAccountByCommitment[commitment] = account;
+        require(uint256(_commitment) < FIELD_SIZE, "_commitment not in field");
+
+        // TODO : the loop number will depends on the schelling point
+        for (uint256 i = 0; i < paymentNumber; i++) {
+            //sanity check for commitment
+            account = deploy(address(this), _commitment, denomination, paymentNumber, i);
+
+            getAccountByCommitment[_commitment] = account;
+            getCommitmentByAccount[account] = _commitment;
+           
+            // TODO emit event
+            
+        }
+        
         
     }
 
@@ -65,22 +92,33 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
     // 1) insert
     // 2) withdraw
 
-    // function commit(bytes32 _commitment) external payable {
+    // call from child contract
+    function commit_2ndPhase_Callback(address caller, bytes32 _commitment, uint256 paymentOrder) external payable override {
 
+        require(uint256(_commitment) < FIELD_SIZE, "_commitment not in field");
+        require( _commitment != bytes32(0), "invalid commitment");
+        // require(getCommitmentByDepositor[caller] == _commitment, "ensure caller == deployer ");
 
-    //     IAccountCommitCallback(msg.sender).accountCommitCallback(_commitment);
-    // }
-
-    function accountCommitCallback(address _caller, bytes32 _commitment) external payable override {
 
         require(pendingCommit[msg.sender] == bytes32(0), "Pending commitment hash");
-        require(uint256(_commitment) < FIELD_SIZE, "_commitment not in field");
+        
+        // still needed to prevent redundant hash from the same sender
+        require(!submittedCommitments[_commitment], "The commitment has been submitted");
 
-        // only callable by account (msg.sender)
+        
+        // only callable by child account(  ie deployer must be factory - address(this))
         // TODO check if we need to include denomination
-        CallbackValidation.verifyCallback(msg.sender, _commitment, denomination, paymentNumber);
+        // TODO return ?
+        CallbackValidation.verifyCallback(address(this), _commitment, paymentOrder);
 
-        pendingCommit[_caller] = _commitment;
+        getCommitmentByDepositor[caller] = _commitment;
+        // store with the child as a key
+        pendingCommit[msg.sender] = _commitment;
+        submittedCommitments[_commitment] = true;
+
+        // //sanity check for commitment
+        // account = deploy(address(this), _commitment, denomination, paymentNumber);
+        // getAccountByCommitment[_commitment] = msg.sender;
     }
 
     // get

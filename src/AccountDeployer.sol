@@ -12,6 +12,7 @@ contract AccountDeployer is IAccountDeployer {
         bytes32 commitment;
         uint256 denomination;
         uint256 paymentNumber;
+        uint256 paymentOrder;
     }
 
     Parameters public override parameters;
@@ -20,10 +21,11 @@ contract AccountDeployer is IAccountDeployer {
         address factory,
         bytes32 commitment,
         uint256 denomination,
-        uint256 paymentNumber
+        uint256 paymentNumber,
+        uint256 paymentOrder
     ) internal returns (address account) {
-        parameters = Parameters({factory: factory, commitment: commitment, denomination: denomination, paymentNumber: paymentNumber});
-        account = address(new Account{salt: keccak256(abi.encode(commitment,denomination, paymentNumber))}());
+        parameters = Parameters({factory: factory, commitment: commitment, denomination: denomination, paymentNumber: paymentNumber, paymentOrder: paymentOrder});
+        account = address(new Account{salt: keccak256(abi.encode(commitment, paymentOrder))}());
         delete parameters;
     }
 

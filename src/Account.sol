@@ -11,6 +11,15 @@ import  {ICore} from "@main/interfaces/ICore.sol";
 
 contract Account  {
 
+    enum State {
+        UNCOMMITED,
+        COMMITED,
+        DEPOSITED,
+        TERMINATED
+    }
+
+    State public currentState = State.UNCOMMITED;
+
     //call relevant states from factory which store merkle roots
     address public immutable factory;
 
@@ -22,29 +31,37 @@ contract Account  {
     constructor() {
         // may remove commitment or replace with new one
         bytes32 commitment;
-        ( factory, commitment, denomination, paymentNumber) = IAccountDeployer(msg.sender).parameters();
+        uint256 paymentOrder;
+        ( factory, commitment, denomination, paymentNumber, paymentOrder) = IAccountDeployer(msg.sender).parameters();
+
+        // if we do atomic commit here, it reduce ...
+        // commit(commitment, paymentOrder);
+
+    }
+
+    modifier inState(State state) {
+        require(state == currentState, 'current state does not allow');
+        _;
     }
     
-    // function commit(
-    //     // bytes calldata _proof,
-    //     bytes32 newRoot
-    // ) external {
-    //     CallbackValidation.verifyCallback(msg.sender, decoded.poolKey);
-    // }
+    function commit_2ndPhase(bytes32 _commitment, uint256 _paymentOrder) external payable inState(State.UNCOMMITED) {
 
-    function commit(bytes32 _commitment) external payable {
-        
         require(msg.value == denomination, "Incorrect denomination");
-
+        
         // pendingCommit[msg.sender] = _commitment;
 
-        IAccountCommitCallback(factory).accountCommitCallback(msg.sender, _commitment);
+        currentState = State.COMMITED;
+        IAccountCommitCallback(factory).commit_2ndPhase_Callback(msg.sender, _commitment, _paymentOrder);
 
 
         _processDeposit();
     }
 
-    function _processDeposit() internal {}
+
+
+    function _processDeposit() internal {
+        // do nothing as already mrk payable
+    }
 
     
 
