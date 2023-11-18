@@ -23,15 +23,14 @@ contract Account  {
     //call relevant states from factory which store merkle roots
     address public immutable factory;
 
+    bytes32 public commitment;
     uint256 public denomination;
     uint256 public paymentNumber;
+    uint256 public paymentOrder;
 
     // mapping(address => bytes32) pendingCommit;
 
     constructor() {
-        // may remove commitment or replace with new one
-        bytes32 commitment;
-        uint256 paymentOrder;
         ( factory, commitment, denomination, paymentNumber, paymentOrder) = IAccountDeployer(msg.sender).parameters();
 
         // if we do atomic commit here, it reduce ...
@@ -44,23 +43,40 @@ contract Account  {
         _;
     }
     
-    function commit_2ndPhase(bytes32 _commitment, uint256 _paymentOrder) external payable inState(State.UNCOMMITED) {
+    function commit_2ndPhase() external payable inState(State.UNCOMMITED) {
 
         require(msg.value == denomination, "Incorrect denomination");
         
         // pendingCommit[msg.sender] = _commitment;
 
         currentState = State.COMMITED;
-        IAccountCommitCallback(factory).commit_2ndPhase_Callback(msg.sender, _commitment, _paymentOrder);
+        IAccountCommitCallback(factory).commit_2ndPhase_Callback(msg.sender, commitment, paymentOrder);
 
 
         _processDeposit();
     }
 
+    function clear_commitment() external inState(State.COMMITED) {
+
+        // require(pendingCommit[msg.sender].commitment != bytes32(0), "not committed");
+        // uint256 denomination = pendingCommit[msg.sender].denomination;
+        // delete pendingCommit[msg.sender];
+
+        currentState = State.UNCOMMITED;
+        IAccountCommitCallback(factory).commit_2ndPhase_Callback(msg.sender, commitment, paymentOrder);
+        _processWithdraw();
+
+    }
 
 
+
+    // TODO fill missed arguments
     function _processDeposit() internal {
         // do nothing as already mrk payable
+    }
+
+    function _processWithdraw() internal {
+        // mock as empty now
     }
 
     

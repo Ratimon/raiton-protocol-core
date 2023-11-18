@@ -6,5 +6,7 @@ interface IAccountCommitCallback {
 
     function commit_2ndPhase_Callback(address caller, bytes32 _commitment, uint256 paymentOrder) external payable;
 
+    function clear_commitment_Callback(address caller, uint256 paymentOrder) external;
+
 
 }

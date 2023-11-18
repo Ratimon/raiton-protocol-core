@@ -32,9 +32,7 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
     // TODO ?
     mapping(address => bytes32) public getCommitmentByAccount;
     // TODO ?
-    mapping(address => bytes32) public getCommitmentByDepositor;
-    // TODO ? redundant with getCommitmentByDepositor?
-    mapping(address => bytes32) pendingCommit;
+    mapping(address => bytes32) public pendingCommit;
 
     // TODO  new sorted array by balance of account
 
@@ -111,14 +109,29 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), _commitment, paymentOrder);
 
-        getCommitmentByDepositor[caller] = _commitment;
+        pendingCommit[caller] = _commitment;
         // store with the child as a key
-        pendingCommit[msg.sender] = _commitment;
+        // pendingCommit[msg.sender] = _commitment;
         submittedCommitments[_commitment] = true;
 
         // //sanity check for commitment
         // account = deploy(address(this), _commitment, denomination, paymentNumber);
         // getAccountByCommitment[_commitment] = msg.sender;
+    }
+
+    function clear_commitment_Callback(address caller, uint256 paymentOrder) external override {
+
+        bytes32 _pendingCommit = pendingCommit[caller];
+
+        require(_pendingCommit!= bytes32(0), "not committed");
+       
+        CallbackValidation.verifyCallback(address(this), _pendingCommit, paymentOrder);
+        delete pendingCommit[caller];
+
+        // TODO
+        // another callback to withdraw
+       
+
     }
 
     // get
