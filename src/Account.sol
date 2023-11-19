@@ -6,7 +6,7 @@ import {IAccountCommitCallback} from "@main/interfaces/IAccountCommitCallback.so
 
 import {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
 
-import  {ICore} from "@main/interfaces/ICore.sol";
+// import  {ICore} from "@main/interfaces/ICore.sol";
 
 
 contract Account  {
@@ -56,6 +56,7 @@ contract Account  {
         _processDeposit();
     }
 
+    // TODO adding param `to` as receiver address
     function clear_commitment() external inState(State.COMMITED) {
 
         // require(pendingCommit[msg.sender].commitment != bytes32(0), "not committed");

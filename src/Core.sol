@@ -47,7 +47,9 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
     uint256 rotateCounter;
     uint256 rotateCounterCumulativeLast;
 
-
+    event Commit(bytes32 indexed commitment, uint256 timestamp);
+    event Clear(bytes32 indexed commitment, uint256 timestamp);
+    event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
 
 
     constructor(
@@ -103,15 +105,12 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
         // still needed to prevent redundant hash from the same sender
         require(!submittedCommitments[_commitment], "The commitment has been submitted");
 
-        
         // only callable by child account(  ie deployer must be factory - address(this))
         // TODO check if we need to include denomination
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), _commitment, paymentOrder);
 
         pendingCommit[caller] = _commitment;
-        // store with the child as a key
-        // pendingCommit[msg.sender] = _commitment;
         submittedCommitments[_commitment] = true;
 
         // //sanity check for commitment
@@ -127,10 +126,9 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
        
         CallbackValidation.verifyCallback(address(this), _pendingCommit, paymentOrder);
         delete pendingCommit[caller];
+        delete submittedCommitments[_pendingCommit];
 
-        // TODO
-        // another callback to withdraw
-       
+        emit Clear(_pendingCommit, block.timestamp);
 
     }
 
