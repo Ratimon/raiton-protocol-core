@@ -3,12 +3,14 @@ pragma solidity =0.8.20;
 
 // import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 import {IAccountCommitCallback} from "@main/interfaces/IAccountCommitCallback.sol";
-
 import {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
 
 // import  {ICore} from "@main/interfaces/ICore.sol";
 
-
+/**
+ * @title Account
+ * @notice the bottom layer with dependency inversion of callback
+ */
 contract Account  {
 
     enum State {
@@ -64,7 +66,7 @@ contract Account  {
         // delete pendingCommit[msg.sender];
 
         currentState = State.UNCOMMITED;
-        IAccountCommitCallback(factory).commit_2ndPhase_Callback(msg.sender, commitment, paymentOrder);
+        IAccountCommitCallback(factory).clear_commitment_Callback(msg.sender, paymentOrder);
         _processWithdraw();
 
     }

@@ -109,7 +109,6 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
         // TODO check if we need to include denomination
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), _commitment, paymentOrder);
-
         pendingCommit[caller] = _commitment;
         submittedCommitments[_commitment] = true;
 
