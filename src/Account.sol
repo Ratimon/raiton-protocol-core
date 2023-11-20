@@ -9,6 +9,7 @@ import  {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 // import  {ICore} from "@main/interfaces/ICore.sol";
 
+ // TODO abstract into 2 types annuoty and endowmwnt
 /**
  * @title Account
  * @notice the bottom layer with dependency inversion of callback
@@ -18,7 +19,6 @@ contract Account  {
     enum State {
         UNCOMMITED,
         COMMITED,
-        DEPOSITED,
         TERMINATED
     }
 
@@ -33,8 +33,9 @@ contract Account  {
 
     bytes32 public commitment;
     uint256 public denomination;
-    uint256 public paymentNumber;
-    uint256 public paymentOrder;
+    uint256 public cashInflows;
+    uint256 public cashOutflows;
+    uint256 public nonce;
 
     // mapping(address => bytes32) pendingCommit;
 
@@ -44,10 +45,8 @@ contract Account  {
         uint256 _amount
     );
 
-    
-
     constructor() {
-        ( factory, commitment, denomination, paymentNumber, paymentOrder) = IAccountDeployer(msg.sender).parameters();
+        ( factory, commitment, denomination, cashInflows, cashOutflows, nonce) = IAccountDeployer(msg.sender).parameters();
 
         // if we do atomic commit here, it reduce ...
         // commit(commitment, paymentOrder);
@@ -64,7 +63,7 @@ contract Account  {
         
         // pendingCommit[msg.sender] = _commitment;
         currentState = State.COMMITED;
-        IAccountCommitCallback(factory).commit_2ndPhase_Callback(msg.sender, commitment, paymentOrder);
+        IAccountCommitCallback(factory).commit_2ndPhase_Callback(msg.sender, commitment, nonce);
 
 
         _processDeposit();
@@ -77,7 +76,7 @@ contract Account  {
         // uint256 denomination = pendingCommit[msg.sender].denomination;
         // delete pendingCommit[msg.sender];
         currentState = State.UNCOMMITED;
-        IAccountCommitCallback(factory).clear_commitment_Callback(msg.sender, paymentOrder);
+        IAccountCommitCallback(factory).clear_commitment_Callback(msg.sender, nonce);
 
         // TODO deal with precision
         _processWithdraw(to, denomination);

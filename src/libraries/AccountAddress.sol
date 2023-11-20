@@ -5,7 +5,8 @@ library AccountAddress {
     // hardcoded
     bytes32 internal constant ACCOUNT_INIT_CODE_HASH = bytes32(0);
 
-    function computeAddress(address factory, bytes32 commitment, uint256 paymentOrder) internal pure returns (address account) {
+    // TODO will separe between annuity and endowmwnt later
+    function computeAddress(address factory, bytes32 commitment, uint256 nonce) internal pure returns (address account) {
 
         account = address(
             uint160(
@@ -14,7 +15,7 @@ library AccountAddress {
                         abi.encodePacked(
                             hex'ff',
                             factory,
-                            keccak256(abi.encode(commitment,paymentOrder)),
+                            keccak256(abi.encode(commitment,nonce)),
                             ACCOUNT_INIT_CODE_HASH
                         )
                     )

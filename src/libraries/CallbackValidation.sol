@@ -7,12 +7,13 @@ import {AccountAddress} from "@main/libraries/AccountAddress.sol";
 
 library CallbackValidation {
 
+    // TODO will separe between annuity and endowmwnt later
     function verifyCallback(
         address factory,
         bytes32 commitment,
-        uint256 paymentOrder
+        uint256 nonce
     ) internal view returns (IAccount pool) {
-        pool = IAccount(AccountAddress.computeAddress(factory, commitment, paymentOrder));
+        pool = IAccount(AccountAddress.computeAddress(factory, commitment, nonce));
         require(msg.sender == address(pool));
     }
 

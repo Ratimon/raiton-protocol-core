@@ -63,6 +63,7 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
     }
 
 
+    // TODO annuity commit - low level commit
     // TODO  fee entrance to prevent DOS?
     // TODO  pausaable / re-entrancy libs ? 
     // TODO whoever can create their smart contract and deploly to participate 
@@ -75,7 +76,9 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
         // TODO : the loop number will depends on the schelling point
         for (uint256 i = 0; i < paymentNumber; i++) {
             //sanity check for commitment
-            account = deploy(address(this), _commitment, denomination, paymentNumber, i);
+
+            // TODO : now hardcoded inflow and out flow as 1 and paymentNumber
+            account = deploy(address(this), _commitment, denomination, 1, paymentNumber , i);
 
             getAccountByCommitment[_commitment] = account;
             getCommitmentByAccount[account] = _commitment;
@@ -92,7 +95,7 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
     // 2) withdraw
 
     // call from child contract
-    function commit_2ndPhase_Callback(address caller, bytes32 _commitment, uint256 paymentOrder) external payable override {
+    function commit_2ndPhase_Callback(address caller, bytes32 _commitment, uint256 nonce) external payable override {
 
         require(uint256(_commitment) < FIELD_SIZE, "_commitment not in field");
         require( _commitment != bytes32(0), "invalid commitment");
@@ -107,7 +110,7 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
         // only callable by child account(  ie deployer must be factory - address(this))
         // TODO check if we need to include denomination
         // TODO return ?
-        CallbackValidation.verifyCallback(address(this), _commitment, paymentOrder);
+        CallbackValidation.verifyCallback(address(this), _commitment, nonce);
         pendingCommit[caller] = _commitment;
         submittedCommitments[_commitment] = true;
 
@@ -116,13 +119,13 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
         // getAccountByCommitment[_commitment] = msg.sender;
     }
 
-    function clear_commitment_Callback(address caller, uint256 paymentOrder) external override {
+    function clear_commitment_Callback(address caller, uint256 nonce) external override {
 
         bytes32 _pendingCommit = pendingCommit[caller];
 
         require(_pendingCommit!= bytes32(0), "not committed");
        
-        CallbackValidation.verifyCallback(address(this), _pendingCommit, paymentOrder);
+        CallbackValidation.verifyCallback(address(this), _pendingCommit, nonce);
         delete pendingCommit[caller];
         delete submittedCommitments[_pendingCommit];
 
