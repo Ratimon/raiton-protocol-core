@@ -49,8 +49,7 @@ contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer,
 
     event Commit(bytes32 indexed commitment, uint256 timestamp);
     event Clear(bytes32 indexed commitment, uint256 timestamp);
-    event Deposit(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
-
+    event Insert(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
 
     constructor(
         IHasher _hasher,
