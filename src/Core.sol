@@ -3,7 +3,7 @@ pragma solidity =0.8.20;
 
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
-import {IAccountCommitCallback} from "@main/interfaces/IAccountCommitCallback.sol";
+import {IPoolsCounterBalancer} from "@main/interfaces/IPoolsCounterBalancer.sol";
 
 
 import  {NoDelegateCall} from "@main/NoDelegateCall.sol";
@@ -12,7 +12,7 @@ import  {AccountDeployer} from "@main/AccountDeployer.sol";
 import { IHasher, MerkleTreeWithHistory } from "@main/MerkleTreeWithHistory.sol";
 
 
-contract Core is IAccountCommitCallback, MerkleTreeWithHistory, AccountDeployer, NoDelegateCall {
+contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, NoDelegateCall {
 
     // store all states
     // add a redeployable stateless router to query the address

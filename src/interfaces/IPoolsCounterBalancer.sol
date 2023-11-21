@@ -2,7 +2,7 @@
 pragma solidity =0.8.20;
 
 
-interface IAccountCommitCallback {
+interface IPoolsCounterBalancer {
 
     function commit_2ndPhase_Callback(address caller, bytes32 _commitment, uint256 paymentOrder) external payable;
 

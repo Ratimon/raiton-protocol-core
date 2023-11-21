@@ -2,7 +2,7 @@
 pragma solidity =0.8.20;
 
 // import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
-import {IAccountCommitCallback} from "@main/interfaces/IAccountCommitCallback.sol";
+import {IPoolsCounterBalancer} from "@main/interfaces/IPoolsCounterBalancer.sol";
 import {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
 
 import  {Address} from "@openzeppelin/contracts/utils/Address.sol";
@@ -63,7 +63,7 @@ contract Account  {
         
         // pendingCommit[msg.sender] = _commitment;
         currentState = State.COMMITED;
-        IAccountCommitCallback(factory).commit_2ndPhase_Callback(msg.sender, commitment, nonce);
+        IPoolsCounterBalancer(factory).commit_2ndPhase_Callback(msg.sender, commitment, nonce);
 
 
         _processDeposit();
@@ -76,7 +76,7 @@ contract Account  {
         // uint256 denomination = pendingCommit[msg.sender].denomination;
         // delete pendingCommit[msg.sender];
         currentState = State.UNCOMMITED;
-        IAccountCommitCallback(factory).clear_commitment_Callback(msg.sender, nonce);
+        IPoolsCounterBalancer(factory).clear_commitment_Callback(msg.sender, nonce);
 
         // TODO deal with precision
         _processWithdraw(to, denomination);
