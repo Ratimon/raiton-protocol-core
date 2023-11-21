@@ -10,7 +10,7 @@ import {IPoolsCounterBalancer} from "@main/interfaces/IPoolsCounterBalancer.sol"
  * @title PoolsCounterBalancer
  * @notice storage contracts which hold raw data when balancing accout life cycle system
  */
- contract PoolsCounterBalancer {
+ contract PoolsCounterBalancer  {
 
 
 
