@@ -67,26 +67,25 @@ contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, 
     // TODO  fee entrance to prevent DOS?
     // TODO  pausaable / re-entrancy libs ? 
     // TODO whoever can create their smart contract and deploly to participate 
-    function commit_1stPhase_Account(
-        bytes32 _commitment
+    function initiate_1stPhase_Account(
+        bytes32 commitment
     ) external noDelegateCall returns (address account) {
 
-        require(uint256(_commitment) < FIELD_SIZE, "_commitment not in field");
+        require(uint256(commitment) < FIELD_SIZE, "commitment not in field");
 
         // TODO : the loop number will depends on the schelling point
         for (uint256 i = 0; i < paymentNumber; i++) {
             //sanity check for commitment
 
             // TODO : now hardcoded inflow and out flow as 1 and paymentNumber
-            account = deploy(address(this), _commitment, denomination, 1, paymentNumber , i);
+            account = deploy(address(this), commitment, denomination, 1, paymentNumber , i);
 
-            getAccountByCommitment[_commitment] = account;
-            getCommitmentByAccount[account] = _commitment;
+            getAccountByCommitment[commitment] = account;
+            getCommitmentByAccount[account] = commitment;
            
             // TODO emit event
             
         }
-        
         
     }
 
@@ -95,28 +94,27 @@ contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, 
     // 2) withdraw
 
     // call from child contract
-    function commit_2ndPhase_Callback(address caller, bytes32 _commitment, uint256 nonce) external payable override {
+    function commit_2ndPhase_Callback(address caller, bytes32 commitment, uint256 nonce) external payable override {
 
-        require(uint256(_commitment) < FIELD_SIZE, "_commitment not in field");
-        require( _commitment != bytes32(0), "invalid commitment");
-        // require(getCommitmentByDepositor[caller] == _commitment, "ensure caller == deployer ");
-
+        require(uint256(commitment) < FIELD_SIZE, "commitment not in field");
+        require( commitment != bytes32(0), "invalid commitment");
+        // require(getCommitmentByDepositor[caller] == commitment, "ensure caller == deployer ");
 
         require(pendingCommit[msg.sender] == bytes32(0), "Pending commitment hash");
         
         // still needed to prevent redundant hash from the same sender
-        require(!submittedCommitments[_commitment], "The commitment has been submitted");
+        require(!submittedCommitments[commitment], "The commitment has been submitted");
 
         // only callable by child account(  ie deployer must be factory - address(this))
         // TODO check if we need to include denomination
         // TODO return ?
-        CallbackValidation.verifyCallback(address(this), _commitment, nonce);
-        pendingCommit[caller] = _commitment;
-        submittedCommitments[_commitment] = true;
+        CallbackValidation.verifyCallback(address(this), commitment, nonce);
+        pendingCommit[caller] = commitment;
+        submittedCommitments[commitment] = true;
 
         // //sanity check for commitment
-        // account = deploy(address(this), _commitment, denomination, paymentNumber);
-        // getAccountByCommitment[_commitment] = msg.sender;
+        // account = deploy(address(this), commitment, denomination, paymentNumber);
+        // getAccountByCommitment[commitment] = msg.sender;
     }
 
     function clear_commitment_Callback(address caller, uint256 nonce) external override {
