@@ -11,7 +11,7 @@ contract SortedList {
         _nextAccounts[GUARD] = GUARD;
       }
 
-    function addAccount(address account, uint256 balance) public {
+    function addAccount(address account, uint256 balance) internal {
         require(_nextAccounts[account] == address(0));
         address index = _findIndex(balance);
         balances[account] = balance;
@@ -20,7 +20,7 @@ contract SortedList {
         listSize++;
     }
 
-    function removeAccount(address account) public {
+    function removeAccount(address account) internal {
         require(_nextAccounts[account] != address(0));
         address prevAccount = _findPrevAccount(account);
         _nextAccounts[prevAccount] = _nextAccounts[account];
@@ -30,16 +30,16 @@ contract SortedList {
     }
 
 
-    function increaseBalance(address account, uint256 score) public {
+    function increaseBalance(address account, uint256 score) internal {
         updateBalance(account, balances[account] + score);
       }
     
-      function reduceBalance(address account, uint256 score) public {
+      function reduceBalance(address account, uint256 score) internal {
         updateBalance(account, balances[account] - score);
       }
     
 
-    function updateBalance(address account, uint256 newBalance) public {
+    function updateBalance(address account, uint256 newBalance) internal {
         require(_nextAccounts[account] != address(0));
         address prevAccount = _findPrevAccount(account);
         address nextAccount = _nextAccounts[account];

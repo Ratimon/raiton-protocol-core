@@ -9,10 +9,14 @@ import {IPoolsCounterBalancer} from "@main/interfaces/IPoolsCounterBalancer.sol"
 import  {NoDelegateCall} from "@main/NoDelegateCall.sol";
 import  {AccountDeployer} from "@main/AccountDeployer.sol";
 
-import { IHasher, MerkleTreeWithHistory } from "@main/MerkleTreeWithHistory.sol";
+import { SortedList } from "@main/utils/SortedList.sol";
 
 
-contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, NoDelegateCall {
+contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateCall {
+
+    uint256 constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 constant ROOT_HISTORY_SIZE = 30;
+    bytes32 constant initialRootZero = 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb; // Keccak256("Tornado")
 
     // store all states
     // add a redeployable stateless router to query the address
@@ -34,10 +38,6 @@ contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, 
     // TODO ?
     mapping(address => bytes32) public pendingCommit;
 
-    // TODO  new sorted array by balance of account
-
-    /// @notice Array of all Accounts held in the Protocol. Used for iteration on accounts
-    address[] private accountsInPool;
 
     mapping(address => address) public accountToOracle;
 
@@ -52,11 +52,9 @@ contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, 
     event Insert(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
 
     constructor(
-        IHasher _hasher,
-        uint32 _merkleTreeHeight,
-        uint256 _denomination,
+     uint256 _denomination,
         uint256 _paymentNumber
-    ) MerkleTreeWithHistory(_merkleTreeHeight, _hasher) {
+    ) {
         require(_denomination > 0, "must be > than 0");
         denomination = _denomination;
         paymentNumber = _paymentNumber;
@@ -65,7 +63,7 @@ contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, 
 
     // TODO annuity commit - low level commit
     // TODO  fee entrance to prevent DOS?
-    // TODO  pausaable / re-entrancy libs ? 
+    // TODO  pausable / re-entrancy libs ? 
     // TODO whoever can create their smart contract and deploly to participate 
     function initiate_1stPhase_Account(
         bytes32 commitment
@@ -82,7 +80,8 @@ contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, 
 
             getAccountByCommitment[commitment] = account;
             getCommitmentByAccount[account] = commitment;
-           
+            addAccount(account, 1);
+        
             // TODO emit event
             
         }
@@ -94,7 +93,7 @@ contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, 
     // 2) withdraw
 
     // call from child contract
-    function commit_2ndPhase_Callback(address caller, bytes32 commitment, uint256 nonce) external payable override {
+    function commit_2ndPhase_Callback(address caller, address account, bytes32 commitment, uint256 nonce) external payable override {
 
         require(uint256(commitment) < FIELD_SIZE, "commitment not in field");
         require( commitment != bytes32(0), "invalid commitment");
@@ -112,9 +111,10 @@ contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, 
         pendingCommit[caller] = commitment;
         submittedCommitments[commitment] = true;
 
-        // //sanity check for commitment
-        // account = deploy(address(this), commitment, denomination, paymentNumber);
-        // getAccountByCommitment[commitment] = msg.sender;
+        getAccountByCommitment[commitment] = account;
+        getCommitmentByAccount[account] = commitment;
+        addAccount(account, 1);
+
     }
 
     function clear_commitment_Callback(address caller, uint256 nonce) external override {
@@ -126,6 +126,11 @@ contract Core is IPoolsCounterBalancer, MerkleTreeWithHistory, AccountDeployer, 
         CallbackValidation.verifyCallback(address(this), _pendingCommit, nonce);
         delete pendingCommit[caller];
         delete submittedCommitments[_pendingCommit];
+
+        address account = getAccountByCommitment[_pendingCommit];
+        delete getAccountByCommitment[_pendingCommit];
+        delete getCommitmentByAccount[account];
+        removeAccount(account);
 
         emit Clear(_pendingCommit, block.timestamp);
 

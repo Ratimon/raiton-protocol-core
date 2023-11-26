@@ -63,7 +63,7 @@ contract Account  {
         
         // pendingCommit[msg.sender] = _commitment;
         currentState = State.COMMITED;
-        IPoolsCounterBalancer(factory).commit_2ndPhase_Callback(msg.sender, commitment, nonce);
+        IPoolsCounterBalancer(factory).commit_2ndPhase_Callback(msg.sender, address(this), commitment, nonce);
 
 
         _processDeposit();
