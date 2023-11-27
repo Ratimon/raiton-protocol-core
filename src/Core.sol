@@ -52,7 +52,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     event Insert(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
 
     constructor(
-     uint256 _denomination,
+        uint256 _denomination,
         uint256 _paymentNumber
     ) {
         require(_denomination > 0, "must be > than 0");
