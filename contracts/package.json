@@ -1,0 +1,25 @@
+{
+  "name": "raiton-protocol-core-contract",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "files": [
+    "deployments",
+    "src"
+  ],
+  "devDependencies": {
+    "as-soon": "^0.0.4",
+    "set-defaults": "^0.0.1"
+  },
+  "scripts": {
+    "prepare": "set-defaults .vscode && forge install --no-git foundry-rs/forge-std@v1.7.3 openzeppelin/openzeppelin-contracts@v5.0.0 || echo ''",
+    "start": "zellij --layout zellij.kdl a template-foundry || zellij --layout zellij.kdl -s template-foundry",
+    "stop": "zellij kill-session template-foundry",
+    "start:wezterm": "wezterm --config-file wezterm.lua",
+    "test": "forge test",
+    "watch_test": "as-soon -w script -w src -w test pnpm test",
+    "local_node": "rm -Rf deployments/localhost && anvil"
+  },
+  "author": "",
+  "license": "ISC"
+}
