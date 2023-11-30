@@ -1,0 +1,21 @@
+{
+  "name": "circuits",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "mocha",
+    "snarkjs": "snarkjs"
+
+  },
+  "devDependencies": {
+    "circomlib": "^2.0.5",
+    "snarkjs": "^0.7.1"
+  },
+  "dependencies": {
+    "chai": "^4.3.10",
+    "circom_tester": "^0.0.19",
+    "mocha": "^10.2.0"
+  },
+  "author": "",
+  "license": "ISC"
+}
