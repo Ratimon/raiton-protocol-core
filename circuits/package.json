@@ -5,7 +5,13 @@
   "scripts": {
     "test": "mocha",
     "snarkjs": "snarkjs",
-    "compile": "mkdir -p build && circom ./deposit.circom --r1cs --wasm --output build "
+    "compile": "mkdir -p build && circom ./deposit.circom --r1cs --wasm --output build ",
+    "phase_1": "snarkjs powersoftau new bn128 14 ./setup/pot14_0000.ptau -v",
+    "contribute_1": "snarkjs powersoftau contribute ./setup/pot14_0000.ptau ./setup/pot14_0001.ptau --name=\"First contribution\" -v",
+    "phase_2": "snarkjs powersoftau prepare phase2 ./setup/pot14_0001.ptau ./setup/pot14_final.ptau -v",
+    "key_gen_deposit": "snarkjs groth16 setup ./build/deposit.r1cs ./setup/pot14_final.ptau ./setup/deposit_circuit_final.zkey",
+    "key_export_deposit": "snarkjs zkey export verificationkey ./setup/deposit_circuit_final.zkey ./setup/deposit_verification_key.json",
+    "verifier_gen_deposit": "snarkjs zkey export solidityverifier ./setup/deposit_circuit_final.zkey build/DepositVerifier.sol"
   },
   "devDependencies": {
     "circomlib": "^2.0.5",
