@@ -4,8 +4,8 @@
   "description": "",
   "scripts": {
     "test": "mocha",
-    "snarkjs": "snarkjs"
-
+    "snarkjs": "snarkjs",
+    "compile": "mkdir -p build && circom ./deposit.circom --r1cs --wasm --output build "
   },
   "devDependencies": {
     "circomlib": "^2.0.5",

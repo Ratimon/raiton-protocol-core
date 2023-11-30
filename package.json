@@ -7,7 +7,8 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "---------------------- UTILITIES ----------------------": "",
-    "contracts:test": "pnpm --filter ./contracts --filter=!./contracts/lib test"
+    "contracts:test": "pnpm --filter ./contracts --filter=!./contracts/lib test",
+    "circuits:compile": "pnpm --filter ./circuits compile"
   },
   "repository": {
     "type": "git",
