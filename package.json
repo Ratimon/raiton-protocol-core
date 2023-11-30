@@ -1,0 +1,22 @@
+{
+  "name": "raiton-protocol-core",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "---------------------- UTILITIES ----------------------": "",
+    "contracts:test": "pnpm --filter ./contracts --filter=!./contracts/lib test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ratimon/raiton-protocol-core.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ratimon/raiton-protocol-core/issues"
+  },
+  "homepage": "https://github.com/Ratimon/raiton-protocol-core#readme"
+}
