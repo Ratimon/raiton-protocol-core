@@ -3,7 +3,12 @@ pragma solidity =0.8.20;
 
 import {Test, console2, stdError} from "@forge-std/Test.sol";
 
+import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
+import {IAccount} from "@main/interfaces/IAccount.sol";
+
 import {Core} from "@main/Core.sol";
+
+import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 
 contract CoreTest is Test {
 
@@ -13,6 +18,7 @@ contract CoreTest is Test {
     address deployer = vm.addr(deployerPrivateKey);
     address alice = makeAddr("Alice");
 
+    IDepositVerifier depositVerifier;
     Core core;
 
     function setUp() public {
@@ -21,7 +27,8 @@ contract CoreTest is Test {
         vm.deal(deployer, 1 ether);
         vm.label(deployer, "Deployer");
 
-        core = new Core(1 ether, 4);
+        depositVerifier =  IDepositVerifier(address(new DepositGroth16Verifier()));
+        core = new Core(depositVerifier, 1 ether, 4);
         vm.label(address(core), "ECOperations");
 
         vm.stopPrank();
@@ -35,9 +42,13 @@ contract CoreTest is Test {
         //commitment hash =  poseidonHash(nullifier, 0, denomination)
         //nullifer hash =  poseidonHash(nullifier, 1, leafIndex, denomination)
 
-        bytes32 commitment;
+        bytes32 commitment = bytes32(uint256(1));
 
-        core.initiate_1stPhase_Account(commitment);
+        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+
+        assertEq32(IAccount(accounts[0]).commitment(), commitment);
+
+        vm.stopPrank();
 
 
     }

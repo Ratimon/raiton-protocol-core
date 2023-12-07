@@ -24,4 +24,9 @@ interface IAccount {
         address payable _relayer,
         uint256 _fee
     ) external;
+
+    // ----------- Getters -----------
+
+    function commitment() external view returns (bytes32);
+
 }

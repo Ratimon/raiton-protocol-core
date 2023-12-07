@@ -1,6 +1,9 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
+import {console} from "@forge-std/console.sol";
+
+
 // import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 import {IPoolsCounterBalancer} from "@main/interfaces/IPoolsCounterBalancer.sol";
 import {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
@@ -31,11 +34,11 @@ contract Account  {
     */
     address public immutable factory;
 
-    bytes32 public commitment;
-    uint256 public denomination;
-    uint256 public cashInflows;
-    uint256 public cashOutflows;
-    uint256 public nonce;
+    bytes32 public immutable commitment;
+    uint256 public immutable denomination;
+    uint256 public immutable cashInflows;
+    uint256 public immutable cashOutflows;
+    uint256 public immutable nonce;
 
     // mapping(address => bytes32) pendingCommit;
 
@@ -47,6 +50,10 @@ contract Account  {
 
     constructor() {
         ( factory, commitment, denomination, cashInflows, cashOutflows, nonce) = IAccountDeployer(msg.sender).parameters();
+
+        console.log("factory: %s", factory);
+        console.log("commitment");
+        console.logBytes32( commitment);
 
         // if we do atomic commit here, it reduce ...
         // commit(commitment, paymentOrder);
