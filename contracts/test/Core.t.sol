@@ -47,6 +47,30 @@ contract CoreTest is Test {
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
 
         assertEq32(IAccount(accounts[0]).commitment(), commitment);
+        assertEq32(IAccount(accounts[1]).commitment(), commitment);
+        assertEq32(IAccount(accounts[2]).commitment(), commitment);
+        assertEq32(IAccount(accounts[3]).commitment(), commitment);
+
+
+        assertEq(IAccount(accounts[0]).denomination(), 1 ether );
+        assertEq(IAccount(accounts[1]).denomination(), 1 ether );
+        assertEq(IAccount(accounts[2]).denomination(), 1 ether );
+        assertEq(IAccount(accounts[3]).denomination(), 1 ether );
+
+        assertEq(IAccount(accounts[0]).cashInflows(), 1);
+        assertEq(IAccount(accounts[1]).cashInflows(), 1);
+        assertEq(IAccount(accounts[2]).cashInflows(), 1);
+        assertEq(IAccount(accounts[3]).cashInflows(), 1);
+
+        assertEq(IAccount(accounts[0]).cashOutflows(), 4);
+        assertEq(IAccount(accounts[1]).cashOutflows(), 4);
+        assertEq(IAccount(accounts[2]).cashOutflows(), 4);
+        assertEq(IAccount(accounts[3]).cashOutflows(), 4);
+
+        assertEq(IAccount(accounts[0]).nonce(), 0);
+        assertEq(IAccount(accounts[1]).nonce(), 1);
+        assertEq(IAccount(accounts[2]).nonce(), 2);
+        assertEq(IAccount(accounts[3]).nonce(), 3);
 
         vm.stopPrank();
 

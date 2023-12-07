@@ -29,4 +29,12 @@ interface IAccount {
 
     function commitment() external view returns (bytes32);
 
+    function denomination() external view returns (uint256);
+
+    function cashInflows() external view returns (uint256);
+
+    function cashOutflows() external view returns (uint256);
+
+    function nonce() external view returns (uint256);
+
 }
