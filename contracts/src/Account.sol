@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {console} from "@forge-std/console.sol";
-
 
 // import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 import {IPoolsCounterBalancer} from "@main/interfaces/IPoolsCounterBalancer.sol";
@@ -50,10 +48,6 @@ contract Account  {
 
     constructor() {
         ( factory, commitment, denomination, cashInflows, cashOutflows, nonce) = IAccountDeployer(msg.sender).parameters();
-
-        console.log("factory: %s", factory);
-        console.log("commitment");
-        console.logBytes32( commitment);
 
         // if we do atomic commit here, it reduce ...
         // commit(commitment, paymentOrder);
