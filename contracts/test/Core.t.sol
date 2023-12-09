@@ -9,11 +9,9 @@ import {IAccount} from "@main/interfaces/IAccount.sol";
 import {Core} from "@main/Core.sol";
 import {BalanceAccount} from "@main/BalanceAccount.sol";
 
-
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 
 contract CoreTest is Test {
-
     string mnemonic = "test test test test test test test test test test test junk";
     uint256 deployerPrivateKey = vm.deriveKey(mnemonic, "m/44'/60'/0'/0/", 1); //  address = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
 
@@ -29,7 +27,7 @@ contract CoreTest is Test {
         vm.deal(deployer, 1 ether);
         vm.label(deployer, "Deployer");
 
-        depositVerifier =  IDepositVerifier(address(new DepositGroth16Verifier()));
+        depositVerifier = IDepositVerifier(address(new DepositGroth16Verifier()));
         core = new Core(depositVerifier, 1 ether, 4);
         vm.label(address(core), "ECOperations");
 
@@ -53,11 +51,10 @@ contract CoreTest is Test {
         assertEq32(IAccount(accounts[2]).commitment(), commitment);
         assertEq32(IAccount(accounts[3]).commitment(), commitment);
 
-
-        assertEq(IAccount(accounts[0]).denomination(), 1 ether );
-        assertEq(IAccount(accounts[1]).denomination(), 1 ether );
-        assertEq(IAccount(accounts[2]).denomination(), 1 ether );
-        assertEq(IAccount(accounts[3]).denomination(), 1 ether );
+        assertEq(IAccount(accounts[0]).denomination(), 1 ether);
+        assertEq(IAccount(accounts[1]).denomination(), 1 ether);
+        assertEq(IAccount(accounts[2]).denomination(), 1 ether);
+        assertEq(IAccount(accounts[3]).denomination(), 1 ether);
 
         assertEq(IAccount(accounts[0]).cashInflows(), 1);
         assertEq(IAccount(accounts[1]).cashInflows(), 1);
@@ -75,16 +72,12 @@ contract CoreTest is Test {
         assertEq(IAccount(accounts[3]).nonce(), 3);
 
         vm.stopPrank();
-
-
     }
 
     function test_commit_2ndPhase_Callback() external {
-
         vm.startPrank(alice);
 
         vm.deal(alice, 1 ether);
-
 
         bytes32 commitment = bytes32(uint256(1));
 
@@ -94,13 +87,8 @@ contract CoreTest is Test {
 
         IAccount account1 = IAccount(accounts[0]);
 
-        account1.commit_2ndPhase{value : 1 ether}();
-
-
+        account1.commit_2ndPhase{value: 1 ether}();
 
         vm.stopPrank();
-
     }
-
-
 }

@@ -7,19 +7,13 @@ import {Script} from "@forge-std/Script.sol";
 
 import {BalanceAccount} from "@main/BalanceAccount.sol";
 
-
 contract ShowInitHashScript is Script {
-
-
-    function getInitHash() public pure returns(bytes32){
+    function getInitHash() public pure returns (bytes32) {
         bytes memory bytecode = type(BalanceAccount).creationCode;
         return keccak256(abi.encodePacked(bytecode));
     }
 
     function run() public view {
-
-        console.logBytes32( getInitHash());
+        console.logBytes32(getInitHash());
     }
-
-
 }

@@ -2,7 +2,6 @@
 pragma solidity =0.8.20;
 
 interface IAccount {
-    
     // ----------- Events -----------
     event Deposit(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
 
@@ -15,7 +14,7 @@ interface IAccount {
     function deposit(
         // bytes calldata _proof,
         bytes32 newRoot
-    ) external; 
+    ) external;
 
     // ignoring _proof now
     function withdraw(
@@ -39,5 +38,4 @@ interface IAccount {
     function cashOutflows() external view returns (uint256);
 
     function nonce() external view returns (uint256);
-
 }

@@ -1,11 +1,10 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import  {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
+import {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
 import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 contract AccountDeployer is IAccountDeployer {
-
     struct Parameters {
         address factory;
         bytes32 commitment;
@@ -25,9 +24,15 @@ contract AccountDeployer is IAccountDeployer {
         uint256 cashOutflows,
         uint256 nonce
     ) internal returns (address account) {
-        parameters = Parameters({factory: factory, commitment: commitment, denomination: denomination, cashInflows: cashInflows, cashOutflows: cashOutflows, nonce: nonce});
+        parameters = Parameters({
+            factory: factory,
+            commitment: commitment,
+            denomination: denomination,
+            cashInflows: cashInflows,
+            cashOutflows: cashOutflows,
+            nonce: nonce
+        });
         account = address(new BalanceAccount{salt: keccak256(abi.encode(commitment, nonce))}());
         delete parameters;
     }
-
 }
