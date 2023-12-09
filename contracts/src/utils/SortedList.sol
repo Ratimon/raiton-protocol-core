@@ -62,7 +62,6 @@ contract SortedList {
         return accountLists;
     }
 
-    
 
     function _findIndex(uint256 newValue) internal view returns(address candidateAddress) {
         candidateAddress = GUARD;
@@ -73,17 +72,17 @@ contract SortedList {
     }
 
     function _verifyIndex(address prevAccount, uint256 newValue, address nextAccount)
-    internal
-    view
-    returns(bool)
+      internal
+      view
+      returns(bool)
     {
         return (prevAccount == GUARD || balances[prevAccount] >= newValue) && 
             (nextAccount == GUARD || newValue > balances[nextAccount]);
     }
 
     function _isPrevAccount(address account, address prevAccount) internal view returns(bool) {
-        return _nextAccounts[prevAccount] == account;
-      }
+      return _nextAccounts[prevAccount] == account;
+    }
 
     function _findPrevAccount(address account) internal view returns(address currentAddress) {
         currentAddress = GUARD;
@@ -93,6 +92,6 @@ contract SortedList {
           currentAddress = _nextAccounts[currentAddress];
         }
         return address(0);
-      }
+    }
     
 }

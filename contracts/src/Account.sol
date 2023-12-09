@@ -15,7 +15,7 @@ import  {Address} from "@openzeppelin/contracts/utils/Address.sol";
  * @title Account
  * @notice the bottom layer with dependency inversion of callback
  */
-contract Account  {
+contract BalanceAccount  {
 
     enum State {
         UNCOMMITED,

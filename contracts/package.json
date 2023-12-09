@@ -18,6 +18,7 @@
     "start:wezterm": "wezterm --config-file wezterm.lua",
     "compile": "forge build",
     "test": "forge test",
+    "show_inithash": "forge script ShowInitHashScript",
     "watch_test": "as-soon -w script -w src -w test pnpm test",
     "local_node": "rm -Rf deployments/localhost && anvil"
   },

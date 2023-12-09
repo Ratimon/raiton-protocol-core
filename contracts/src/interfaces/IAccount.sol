@@ -9,6 +9,9 @@ interface IAccount {
     event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
 
     // ----------- State changing api -----------
+
+    function commit_2ndPhase() external payable;
+
     function deposit(
         // bytes calldata _proof,
         bytes32 newRoot

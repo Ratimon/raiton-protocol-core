@@ -7,6 +7,8 @@ import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
 import {IAccount} from "@main/interfaces/IAccount.sol";
 
 import {Core} from "@main/Core.sol";
+import {BalanceAccount} from "@main/Account.sol";
+
 
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 
@@ -77,6 +79,28 @@ contract CoreTest is Test {
 
     }
 
+    function test_commit_2ndPhase_Callback() external {
+
+        vm.startPrank(alice);
+
+        vm.deal(alice, 1 ether);
+
+
+        bytes32 commitment = bytes32(uint256(1));
+
+        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+
+        assertEq32(IAccount(accounts[0]).commitment(), commitment);
+
+        IAccount account1 = IAccount(accounts[0]);
+
+        account1.commit_2ndPhase{value : 1 ether}();
+
+
+
+        vm.stopPrank();
+
+    }
 
 
 }

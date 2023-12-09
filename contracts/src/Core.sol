@@ -85,10 +85,11 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             // TODO : now hardcoded inflow and out flow as 1 and paymentNumber
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber , i);
 
+            // wrong   TODO : fix it
             getAccountByCommitment[commitment] = account;
             getCommitmentByAccount[account] = commitment;
-            addAccount(account, 1);
-            accounts[i] =account;
+            addAccount(account, 0);
+            accounts[i] = account;
         
             // TODO emit event
             
@@ -121,7 +122,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
         getAccountByCommitment[commitment] = account;
         getCommitmentByAccount[account] = commitment;
-        addAccount(account, 1);
+        // addAccount(account, 1);
 
     }
 
@@ -129,7 +130,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
         bytes32 _pendingCommit = pendingCommit[caller];
 
-        require(_pendingCommit!= bytes32(0), "not committed");
+        require(_pendingCommit != bytes32(0), "not committed");
        
         CallbackValidation.verifyCallback(address(this), _pendingCommit, nonce);
         delete pendingCommit[caller];

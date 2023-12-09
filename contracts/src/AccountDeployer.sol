@@ -3,7 +3,7 @@ pragma solidity =0.8.20;
 
 import  {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
 
-import {Account} from "@main/Account.sol";
+import {BalanceAccount} from "@main/Account.sol";
 
 
 contract AccountDeployer is IAccountDeployer {
@@ -28,7 +28,7 @@ contract AccountDeployer is IAccountDeployer {
         uint256 nonce
     ) internal returns (address account) {
         parameters = Parameters({factory: factory, commitment: commitment, denomination: denomination, cashInflows: cashInflows, cashOutflows: cashOutflows, nonce: nonce});
-        account = address(new Account{salt: keccak256(abi.encode(commitment, nonce))}());
+        account = address(new BalanceAccount{salt: keccak256(abi.encode(commitment, nonce))}());
         delete parameters;
     }
 
