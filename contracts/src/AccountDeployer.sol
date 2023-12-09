@@ -2,9 +2,7 @@
 pragma solidity =0.8.20;
 
 import  {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
-
-import {BalanceAccount} from "@main/Account.sol";
-
+import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 contract AccountDeployer is IAccountDeployer {
 

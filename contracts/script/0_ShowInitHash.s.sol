@@ -5,7 +5,7 @@ import {console} from "@forge-std/console.sol";
 
 import {Script} from "@forge-std/Script.sol";
 
-import {BalanceAccount} from "@main/Account.sol";
+import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 
 contract ShowInitHashScript is Script {

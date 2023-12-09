@@ -7,7 +7,7 @@ import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
 import {IAccount} from "@main/interfaces/IAccount.sol";
 
 import {Core} from "@main/Core.sol";
-import {BalanceAccount} from "@main/Account.sol";
+import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";

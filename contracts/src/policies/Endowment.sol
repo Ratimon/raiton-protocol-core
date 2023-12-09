@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {BalanceAccount} from "@main/Account.sol";
+import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 /**
  * @title Endowment
