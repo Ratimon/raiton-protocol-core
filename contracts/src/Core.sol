@@ -79,7 +79,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             // wrong   TODO : fix it
             getAccountByCommitment[commitment] = account;
             getCommitmentByAccount[account] = commitment;
-            addAccount(account, 0);
+            _addAccount(account, 0);
             accounts[i] = account;
 
             // TODO emit event
@@ -130,7 +130,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         address account = getAccountByCommitment[_pendingCommit];
         delete getAccountByCommitment[_pendingCommit];
         delete getCommitmentByAccount[account];
-        removeAccount(account);
+        _removeAccount(account);
 
         emit Clear(_pendingCommit, block.timestamp);
     }
