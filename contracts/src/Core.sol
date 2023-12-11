@@ -28,13 +28,11 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     uint256 public denomination;
     uint256 public paymentNumber;
 
-    // TODO ?
-    mapping(bytes32 => bool) public submittedCommitments;
-    // TODO ? do we need?
-    mapping(bytes32 => address) public getAccountByCommitment;
+    // TODO ? adding new struct of Accountkey
+    mapping(bytes32 => mapping(uint256 => address)) public getPendingAccounts;
 
     // TODO ?
-    mapping(address => bytes32) public getCommitmentByAccount;
+    mapping(bytes32 => bool) public submittedCommitments;
     // TODO ?
     mapping(address => bytes32) public pendingCommit;
 
@@ -76,9 +74,8 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             // TODO : now hardcoded inflow and out flow as 1 and paymentNumber
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
 
-            // wrong   TODO : fix it
-            getAccountByCommitment[commitment] = account;
-            getCommitmentByAccount[account] = commitment;
+            require(getPendingAccounts[commitment][i] == address(0), "accound already deployed");
+            getPendingAccounts[commitment][i] = account;
             accounts[i] = account;
 
             // TODO emit event
@@ -112,9 +109,10 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         pendingCommit[caller] = commitment;
         submittedCommitments[commitment] = true;
 
-        getAccountByCommitment[commitment] = account;
-        getCommitmentByAccount[account] = commitment;
-        // addAccount(account, 1);
+        delete getPendingAccounts[commitment][nonce];
+        _addAccount(account, denomination);
+
+        emit Commit(commitment, block.timestamp);
     }
 
     function clear_commitment_Callback(address caller, uint256 nonce) external override {
@@ -125,11 +123,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         CallbackValidation.verifyCallback(address(this), _pendingCommit, nonce);
         delete pendingCommit[caller];
         delete submittedCommitments[_pendingCommit];
-
-        address account = getAccountByCommitment[_pendingCommit];
-        delete getAccountByCommitment[_pendingCommit];
-        delete getCommitmentByAccount[account];
-        _removeAccount(account);
+        _removeAccount(caller);
 
         emit Clear(_pendingCommit, block.timestamp);
     }
