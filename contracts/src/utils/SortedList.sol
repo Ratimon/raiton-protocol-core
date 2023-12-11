@@ -33,12 +33,9 @@ contract SortedList {
         } else {
 
           if (  balance <= balances[lowestAccount] ) {
-
             lowestAccount = account;
-
           }
 
-          // lowestAccount = _nextAccounts[account];
         }
 
         console.log("lowestAccount: %s", lowestAccount);
@@ -55,7 +52,12 @@ contract SortedList {
 
         if (_nextAccounts[prevAccount] == GUARD) {
           lowestAccount = prevAccount;
-        } 
+        } else {
+            
+            if ( balances[prevAccount] <= balances[lowestAccount] ) {
+              lowestAccount = prevAccount;
+            }
+        }
 
         listSize--;
     }

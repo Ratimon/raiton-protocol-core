@@ -11,6 +11,10 @@ contract MockSortedList is SortedList{
     function addAccount(address account, uint256 amount) external {
         _addAccount(account, amount);
     }
+
+    function removeAccount(address account) external {
+        _removeAccount(account);
+    }
 }
 
 
@@ -43,7 +47,7 @@ contract SortedListTest is Test {
         vm.stopPrank();
     }
 
-    function test_getTop() external {
+    function test_addAccount() external {
         vm.startPrank(deployer);
 
         list.addAccount(alice, 1 ether);
@@ -58,8 +62,33 @@ contract SortedListTest is Test {
         assertEq(accounts[2], bob);
         assertEq(accounts[3], alice);
 
-        vm.stopPrank();
+        address lowestAccount = list.getBottom();
+        assertEq(lowestAccount, alice);
 
+        vm.stopPrank();
+    }
+
+    function test_removeAccount() external {
+
+        vm.startPrank(deployer);
+
+        list.addAccount(alice, 1 ether);
+        list.addAccount(bob, 2 ether);
+        list.addAccount(carol, 3 ether);
+        list.addAccount(dave, 4 ether);
+
+        list.removeAccount(carol);
+        list.removeAccount(alice);
+        
+        address[] memory accounts = list.getTop(2);
+
+        assertEq(accounts[0], dave);
+        assertEq(accounts[1], bob);
+
+        address lowestAccount = list.getBottom();
+        assertEq(lowestAccount, bob);
+
+        vm.stopPrank();
     }
 
     function test_getBottom() external {
@@ -71,11 +100,9 @@ contract SortedListTest is Test {
         list.addAccount(dave, 4 ether);
 
         address lowestAccount = list.getBottom();
-
         assertEq(lowestAccount, alice);
 
         vm.stopPrank();
-
     }
 
 }
