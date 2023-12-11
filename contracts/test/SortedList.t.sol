@@ -22,6 +22,8 @@ contract SortedListTest is Test {
     address deployer = vm.addr(deployerPrivateKey);
     address alice = makeAddr("Alice");
     address bob = makeAddr("Bob");
+    address carol = makeAddr("Carol");
+    address dave = makeAddr("Dave");
 
     MockSortedList list;
 
@@ -30,6 +32,10 @@ contract SortedListTest is Test {
 
         vm.deal(deployer, 1 ether);
         vm.label(deployer, "Deployer");
+        vm.label(alice, "Alice");
+        vm.label(bob, "Bob");
+        vm.label(carol, "Carol");
+        vm.label(dave, "Dave");
 
         list = new MockSortedList();
         vm.label(address(list), "MockSortedList");
@@ -37,11 +43,20 @@ contract SortedListTest is Test {
         vm.stopPrank();
     }
 
-    function test_add_Account() external {
+    function test_getTop() external {
         vm.startPrank(deployer);
 
         list.addAccount(alice, 1 ether);
         list.addAccount(bob, 2 ether);
+        list.addAccount(carol, 3 ether);
+        list.addAccount(dave, 4 ether);
+
+        address[] memory accounts = list.getTop(4);
+
+        assertEq(accounts[0], dave);
+        assertEq(accounts[1], carol);
+        assertEq(accounts[2], bob);
+        assertEq(accounts[3], alice);
 
         vm.stopPrank();
 

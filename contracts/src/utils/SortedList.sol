@@ -11,6 +11,9 @@ contract SortedList {
         _nextAccounts[GUARD] = GUARD;
     }
 
+  /**
+  * @notice find the right place, between balances of previous and next accounts, then insert the new account
+  */
     function _addAccount(address account, uint256 balance) internal {
         require(_nextAccounts[account] == address(0));
         address index = _findIndex(balance);
