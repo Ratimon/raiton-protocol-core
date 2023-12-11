@@ -10,18 +10,19 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 // import  {ICore} from "@main/interfaces/ICore.sol";
 
 // TODO abstract into 2 types annuoty and endowmwnt
+// TODO define invariant
 /**
  * @title Account
  * @notice the bottom layer with dependency inversion of callback
  */
 contract BalanceAccount {
-    enum State {
+    enum Status {
         UNCOMMITED,
         COMMITED,
         TERMINATED
     }
 
-    State public currentState = State.UNCOMMITED;
+    Status public currentStatus = Status.UNCOMMITED;
 
     //call relevant states from factory which store merkle roots
     /**
@@ -39,6 +40,8 @@ contract BalanceAccount {
 
     // mapping(address => bytes32) pendingCommit;
 
+    uint256 public currentBalance;
+
     event Withdrawal(address indexed _caller, address indexed _to, uint256 _amount);
 
     constructor() {
@@ -49,12 +52,12 @@ contract BalanceAccount {
         // commit(commitment, paymentOrder);
     }
 
-    modifier inState(State state) {
-        require(state == currentState, "current state does not allow");
+    modifier inStatus(Status status) {
+        require(status == currentStatus, "current status does not allow");
         _;
     }
 
-    function commit_2ndPhase() external payable inState(State.UNCOMMITED) returns (bytes32) {
+    function commit_2ndPhase() external payable inStatus(Status.UNCOMMITED) returns (bytes32) {
 
         //TODO handle ERC20 case
         uint256 amountIn = denomination/cashInflows;// 1 ether/
@@ -62,24 +65,25 @@ contract BalanceAccount {
         require(msg.value == amountIn, "Incorrect amountIn");
 
         // pendingCommit[msg.sender] = _commitment;
-        currentState = State.COMMITED;
-        IPoolsCounterBalancer(factory).commit_2ndPhase_Callback(msg.sender, address(this), commitment, nonce, amountIn);
-
+        currentStatus = Status.COMMITED;
+        currentBalance += amountIn;
         _processDeposit();
-
+        IPoolsCounterBalancer(factory).commit_2ndPhase_Callback(msg.sender, address(this), commitment, nonce, amountIn);
+        
         return commitment;
     }
 
     // TODO adding param `to` as receiver address
-    function clear_commitment(address payable to) external inState(State.COMMITED) {
+    function clear_commitment(address payable to) external inStatus(Status.COMMITED) {
         // require(pendingCommit[msg.sender].commitment != bytes32(0), "not committed");
         // uint256 denomination = pendingCommit[msg.sender].denomination;
         // delete pendingCommit[msg.sender];
-        currentState = State.UNCOMMITED;
-        IPoolsCounterBalancer(factory).clear_commitment_Callback(msg.sender, nonce);
-
+        currentStatus = Status.UNCOMMITED;
         // TODO deal with precision
         _processWithdraw(to, denomination);
+
+        IPoolsCounterBalancer(factory).clear_commitment_Callback(msg.sender, nonce);
+
     }
 
     // TODO fill missed arguments

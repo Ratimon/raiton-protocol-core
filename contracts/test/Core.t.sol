@@ -64,14 +64,11 @@ contract CoreTest is Test {
 
         IAccount account_1 = IAccount(accounts[0]);
 
-        assertEq( address(account_1).balance, 0 ether);
         assertEq( core.getPendingAccount(commitment, 1), accounts[1]);
         assertEq( core.pendingCommitment(alice), bytes32(0));
         assertEq( core.submittedCommitments(commitment), false);
 
         bytes32 returningCommitment = account_1.commit_2ndPhase{value: 1 ether}();
-
-        assertEq( address(account_1).balance, 1 ether);
         assertEq( returningCommitment, commitment);
         assertEq( core.getPendingAccount(returningCommitment, 0), address(0));
         assertEq( core.pendingCommitment(alice), returningCommitment);

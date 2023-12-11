@@ -70,4 +70,27 @@ contract BalanceAccountTest is Test {
 
         vm.stopPrank();
     }
+
+    function test_commit_2ndPhase() external {
+        vm.startPrank(alice);
+
+        vm.deal(alice, 1 ether);
+
+        bytes32 commitment = bytes32(uint256(1));
+        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+
+        BalanceAccount account_1 = BalanceAccount(accounts[0]);
+
+        assertEq( address(account_1).balance, 0 ether);
+        assertEq( uint256(account_1.currentStatus()),  uint256(BalanceAccount.Status.UNCOMMITED));
+        assertEq( account_1.currentBalance(), 0 ether);
+
+        account_1.commit_2ndPhase{value: 1 ether}();
+
+        assertEq( address(account_1).balance, 1 ether);
+        assertEq( uint256(account_1.currentStatus()),  uint256(BalanceAccount.Status.COMMITED));
+        assertEq( account_1.currentBalance(), 1 ether);
+
+        vm.stopPrank();
+    }
 }
