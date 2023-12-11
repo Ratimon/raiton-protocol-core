@@ -9,7 +9,7 @@ interface IAccount {
 
     // ----------- State changing api -----------
 
-    function commit_2ndPhase() external payable;
+    function commit_2ndPhase() external payable returns (bytes32);
 
     function deposit(
         // bytes calldata _proof,

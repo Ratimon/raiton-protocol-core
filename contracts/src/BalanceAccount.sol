@@ -30,6 +30,8 @@ contract BalanceAccount {
     address public immutable factory;
 
     bytes32 public immutable commitment;
+
+    // TODO  check if we need to store them
     uint256 public immutable denomination;
     uint256 public immutable cashInflows;
     uint256 public immutable cashOutflows;
@@ -53,11 +55,15 @@ contract BalanceAccount {
     }
 
     function commit_2ndPhase() external payable inState(State.UNCOMMITED) returns (bytes32) {
-        require(msg.value == denomination, "Incorrect denomination");
+
+        //TODO handle ERC20 case
+        uint256 amountIn = denomination/cashInflows;// 1 ether/
+        // uint256 amountIn = denomination/cashOutflows; // 1 ether/4 = 0.25 ether
+        require(msg.value == amountIn, "Incorrect amountIn");
 
         // pendingCommit[msg.sender] = _commitment;
         currentState = State.COMMITED;
-        IPoolsCounterBalancer(factory).commit_2ndPhase_Callback(msg.sender, address(this), commitment, nonce);
+        IPoolsCounterBalancer(factory).commit_2ndPhase_Callback(msg.sender, address(this), commitment, nonce, amountIn);
 
         _processDeposit();
 
@@ -86,4 +92,6 @@ contract BalanceAccount {
 
         emit Withdrawal(msg.sender, to, amountOut);
     }
+
+    //TODO fallback to handle inflation attack
 }

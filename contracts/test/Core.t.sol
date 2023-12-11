@@ -62,8 +62,26 @@ contract CoreTest is Test {
         bytes32 commitment = bytes32(uint256(1));
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
 
-        IAccount account1 = IAccount(accounts[0]);
-        account1.commit_2ndPhase{value: 1 ether}();
+        IAccount account_1 = IAccount(accounts[0]);
+
+        assertEq( address(account_1).balance, 0 ether);
+        assertEq( core.getPendingAccount(commitment, 1), accounts[1]);
+        assertEq( core.pendingCommitment(alice), bytes32(0));
+        assertEq( core.submittedCommitments(commitment), false);
+
+        bytes32 returningCommitment = account_1.commit_2ndPhase{value: 1 ether}();
+
+        assertEq( address(account_1).balance, 1 ether);
+        assertEq( returningCommitment, commitment);
+        assertEq( core.getPendingAccount(returningCommitment, 0), address(0));
+        assertEq( core.pendingCommitment(alice), returningCommitment);
+        assertEq( core.submittedCommitments(returningCommitment), true);
+
+        address[] memory topAccounts = core.getTop(1);
+        assertEq(topAccounts[0], address(account_1));
+
+        address lowestAccount = core.getBottom();
+        assertEq(lowestAccount, address(account_1));
 
         vm.stopPrank();
     }

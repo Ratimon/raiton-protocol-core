@@ -43,11 +43,11 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     uint256 rotateCounter;
     uint256 rotateCounterCumulativeLast;
 
-    event Commit(bytes32 indexed commitment, uint256 timestamp);
+    event Commit(bytes32 indexed commitment, address indexed account,uint256 amountIn, uint256 timestamp);
     event Clear(bytes32 indexed commitment, uint256 timestamp);
     event Insert(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
 
-    constructor(IDepositVerifier _depositVerifier, uint256 _denomination, uint256 _paymentNumber) {
+    constructor(IDepositVerifier _depositVerifier, uint256 _denomination, uint256 _paymentNumber) SortedList() {
         require(_denomination > 0, "must be > than 0");
         denomination = _denomination;
         paymentNumber = _paymentNumber;
@@ -71,7 +71,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         for (uint256 i = 0; i < paymentNumber; i++) {
             //sanity check for commitment
 
-            // TODO : now hardcoded inflow and out flow as 1 and paymentNumber
+            // TODO : now hardcoded inflow and outflow as 1 and paymentNumber respectively
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
 
             require(getPendingAccount[commitment][i] == address(0), "accound already deployed");
@@ -88,16 +88,15 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     // 2) withdraw
 
     // call from child contract
-    function commit_2ndPhase_Callback(address caller, address account, bytes32 commitment, uint256 nonce)
+    function commit_2ndPhase_Callback(address caller, address account, bytes32 commitment, uint256 nonce, uint256 amountIn)
         external
         payable
         override
     {
         require(uint256(commitment) < FIELD_SIZE, "commitment not in field");
         require(commitment != bytes32(0), "invalid commitment");
-        // require(getCommitmentByDepositor[caller] == commitment, "ensure caller == deployer ");
 
-        require(pendingCommitment[msg.sender] == bytes32(0), "Pending commitment hash");
+        require(pendingCommitment[caller] == bytes32(0), "Pending commitment hash");
 
         // still needed to prevent redundant hash from the same sender
         require(!submittedCommitments[commitment], "The commitment has been submitted");
@@ -106,13 +105,13 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         // TODO check if we need to include denomination
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), commitment, nonce);
+        delete getPendingAccount[commitment][nonce];
         pendingCommitment[caller] = commitment;
         submittedCommitments[commitment] = true;
 
-        delete getPendingAccount[commitment][nonce];
-        _addAccount(account, denomination);
+        _addAccount(account, amountIn);
 
-        emit Commit(commitment, block.timestamp);
+        emit Commit(commitment, account, amountIn, block.timestamp);
     }
 
     function clear_commitment_Callback(address caller, uint256 nonce) external override {

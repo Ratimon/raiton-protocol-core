@@ -68,7 +68,6 @@ contract BalanceAccountTest is Test {
         assertEq(IAccount(accounts[2]).nonce(), 2);
         assertEq(IAccount(accounts[3]).nonce(), 3);
 
-
         vm.stopPrank();
     }
 }
