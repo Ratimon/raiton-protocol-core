@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {console} from "@forge-std/console.sol";
-
 contract SortedList {
     mapping(address => uint256) public balances;
     mapping(address => address) _nextAccounts;
@@ -15,23 +13,20 @@ contract SortedList {
         lowestAccount = GUARD;
     }
 
-  /**
-  * @notice find the right place, between balances of previous and next accounts, then insert the new account
-  */
+    /**
+     * @notice find the right place, between balances of previous and next accounts, then insert the new account
+     */
     function _addAccount(address account, uint256 balance) internal {
         require(_nextAccounts[account] == address(0));
         address index = _findIndex(balance);
         balances[account] = balance;
-        
+
         _nextAccounts[account] = _nextAccounts[index];
         _nextAccounts[index] = account;
 
-
         if (_nextAccounts[account] == GUARD || balances[account] <= balances[lowestAccount]) {
-          lowestAccount = account;
-        } 
-
-        console.log("lowestAccount: %s", lowestAccount);
+            lowestAccount = account;
+        }
 
         listSize++;
     }
@@ -43,9 +38,9 @@ contract SortedList {
         _nextAccounts[account] = address(0);
         balances[account] = 0;
 
-        if (_nextAccounts[prevAccount] == GUARD || balances[prevAccount] <= balances[lowestAccount])  {
-          lowestAccount = prevAccount;
-        } 
+        if (_nextAccounts[prevAccount] == GUARD || balances[prevAccount] <= balances[lowestAccount]) {
+            lowestAccount = prevAccount;
+        }
 
         listSize--;
     }
@@ -82,7 +77,7 @@ contract SortedList {
     }
 
     function getBottom() public view returns (address) {
-      return lowestAccount;
+        return lowestAccount;
     }
 
     function _findIndex(uint256 newValue) internal view returns (address candidateAddress) {

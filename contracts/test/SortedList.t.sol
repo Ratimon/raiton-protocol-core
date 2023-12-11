@@ -5,7 +5,7 @@ import {Test, console2, stdError} from "@forge-std/Test.sol";
 
 import {SortedList} from "@main/utils/SortedList.sol";
 
-contract MockSortedList is SortedList{
+contract MockSortedList is SortedList {
     constructor() SortedList() {}
 
     function addAccount(address account, uint256 amount) external {
@@ -17,9 +17,7 @@ contract MockSortedList is SortedList{
     }
 }
 
-
 contract SortedListTest is Test {
-
     string mnemonic = "test test test test test test test test test test test junk";
     uint256 deployerPrivateKey = vm.deriveKey(mnemonic, "m/44'/60'/0'/0/", 1); //  address = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
 
@@ -69,7 +67,6 @@ contract SortedListTest is Test {
     }
 
     function test_removeAccount() external {
-
         vm.startPrank(deployer);
 
         list.addAccount(alice, 1 ether);
@@ -79,7 +76,7 @@ contract SortedListTest is Test {
 
         list.removeAccount(carol);
         list.removeAccount(alice);
-        
+
         address[] memory accounts = list.getTop(2);
 
         assertEq(accounts[0], dave);
@@ -104,5 +101,4 @@ contract SortedListTest is Test {
 
         vm.stopPrank();
     }
-
 }
