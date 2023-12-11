@@ -79,7 +79,6 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             // wrong   TODO : fix it
             getAccountByCommitment[commitment] = account;
             getCommitmentByAccount[account] = commitment;
-            _addAccount(account, 0);
             accounts[i] = account;
 
             // TODO emit event

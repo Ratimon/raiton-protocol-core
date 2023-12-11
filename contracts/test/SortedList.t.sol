@@ -62,4 +62,20 @@ contract SortedListTest is Test {
 
     }
 
+    function test_getBottom() external {
+        vm.startPrank(deployer);
+
+        list.addAccount(alice, 1 ether);
+        list.addAccount(bob, 2 ether);
+        list.addAccount(carol, 3 ether);
+        list.addAccount(dave, 4 ether);
+
+        address lowestAccount = list.getBottom();
+
+        assertEq(lowestAccount, alice);
+
+        vm.stopPrank();
+
+    }
+
 }
