@@ -29,12 +29,12 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     uint256 public paymentNumber;
 
     // TODO ? adding new struct of Accountkey
-    mapping(bytes32 => mapping(uint256 => address)) public getPendingAccounts;
+    mapping(bytes32 => mapping(uint256 => address)) public getPendingAccount;
 
     // TODO ?
     mapping(bytes32 => bool) public submittedCommitments;
     // TODO ?
-    mapping(address => bytes32) public pendingCommit;
+    mapping(address => bytes32) public pendingCommitment;
 
     mapping(address => address) public accountToOracle;
 
@@ -74,8 +74,8 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             // TODO : now hardcoded inflow and out flow as 1 and paymentNumber
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
 
-            require(getPendingAccounts[commitment][i] == address(0), "accound already deployed");
-            getPendingAccounts[commitment][i] = account;
+            require(getPendingAccount[commitment][i] == address(0), "accound already deployed");
+            getPendingAccount[commitment][i] = account;
             accounts[i] = account;
 
             // TODO emit event
@@ -97,7 +97,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         require(commitment != bytes32(0), "invalid commitment");
         // require(getCommitmentByDepositor[caller] == commitment, "ensure caller == deployer ");
 
-        require(pendingCommit[msg.sender] == bytes32(0), "Pending commitment hash");
+        require(pendingCommitment[msg.sender] == bytes32(0), "Pending commitment hash");
 
         // still needed to prevent redundant hash from the same sender
         require(!submittedCommitments[commitment], "The commitment has been submitted");
@@ -106,22 +106,22 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         // TODO check if we need to include denomination
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), commitment, nonce);
-        pendingCommit[caller] = commitment;
+        pendingCommitment[caller] = commitment;
         submittedCommitments[commitment] = true;
 
-        delete getPendingAccounts[commitment][nonce];
+        delete getPendingAccount[commitment][nonce];
         _addAccount(account, denomination);
 
         emit Commit(commitment, block.timestamp);
     }
 
     function clear_commitment_Callback(address caller, uint256 nonce) external override {
-        bytes32 _pendingCommit = pendingCommit[caller];
+        bytes32 _pendingCommit = pendingCommitment[caller];
 
         require(_pendingCommit != bytes32(0), "not committed");
 
         CallbackValidation.verifyCallback(address(this), _pendingCommit, nonce);
-        delete pendingCommit[caller];
+        delete pendingCommitment[caller];
         delete submittedCommitments[_pendingCommit];
         _removeAccount(caller);
 

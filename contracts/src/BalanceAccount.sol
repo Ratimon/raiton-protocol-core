@@ -52,7 +52,7 @@ contract BalanceAccount {
         _;
     }
 
-    function commit_2ndPhase() external payable inState(State.UNCOMMITED) {
+    function commit_2ndPhase() external payable inState(State.UNCOMMITED) returns (bytes32) {
         require(msg.value == denomination, "Incorrect denomination");
 
         // pendingCommit[msg.sender] = _commitment;
@@ -60,6 +60,8 @@ contract BalanceAccount {
         IPoolsCounterBalancer(factory).commit_2ndPhase_Callback(msg.sender, address(this), commitment, nonce);
 
         _processDeposit();
+
+        return commitment;
     }
 
     // TODO adding param `to` as receiver address

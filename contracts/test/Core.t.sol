@@ -71,6 +71,13 @@ contract CoreTest is Test {
         assertEq(IAccount(accounts[2]).nonce(), 2);
         assertEq(IAccount(accounts[3]).nonce(), 3);
 
+
+        assertEq( core.getPendingAccount(commitment, 0), accounts[0]);
+        assertEq( core.getPendingAccount(commitment, 1), accounts[1]);
+        assertEq( core.getPendingAccount(commitment, 2), accounts[2]);
+        assertEq( core.getPendingAccount(commitment, 3), accounts[3]);
+
+
         vm.stopPrank();
     }
 
