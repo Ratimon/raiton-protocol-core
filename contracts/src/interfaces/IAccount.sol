@@ -11,6 +11,8 @@ interface IAccount {
 
     function commit_2ndPhase() external payable returns (bytes32);
 
+    function clear_commitment(address payable to) external;
+
     function deposit(
         // bytes calldata _proof,
         bytes32 newRoot

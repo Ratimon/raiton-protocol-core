@@ -82,4 +82,21 @@ contract CoreTest is Test {
 
         vm.stopPrank();
     }
+
+    function test_clear_commitment_Callback() external {
+
+        vm.deal(alice, 1 ether);
+
+        bytes32 commitment = bytes32(uint256(1));
+        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+
+        IAccount account_1 = IAccount(accounts[0]);
+
+        account_1.commit_2ndPhase{value: 1 ether}();
+        account_1.clear_commitment(payable(alice));
+
+        assertEq( core.pendingCommitment(alice), bytes32(0));
+        assertEq( core.submittedCommitments(commitment), false);
+
+    }
 }
