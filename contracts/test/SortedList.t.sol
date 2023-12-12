@@ -88,6 +88,16 @@ contract SortedListTest is Test {
         vm.stopPrank();
     }
 
+    function test_RevertWhen_lessThanListSize_getTop() external {
+        vm.startPrank(deployer);
+
+        vm.expectRevert(bytes("SortedList: k must be > than list size"));
+        list.getTop(2);
+        
+        vm.stopPrank();
+
+    }
+
     function test_getBottom() external {
         vm.startPrank(deployer);
 

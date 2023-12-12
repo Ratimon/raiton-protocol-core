@@ -66,7 +66,7 @@ contract SortedList {
     }
 
     function getTop(uint256 k) public view returns (address[] memory) {
-        require(k <= listSize);
+        require(k <= listSize, "SortedList: k must be > than list size");
         address[] memory accountLists = new address[](k);
         address currentAddress = _nextAccounts[GUARD];
         for (uint256 i = 0; i < k; ++i) {
