@@ -22,9 +22,8 @@ contract CoreTest is Test {
     Core core;
 
     function setUp() public {
-        vm.startPrank(deployer);
+        startHoax(deployer,  1 ether);
 
-        vm.deal(deployer, 1 ether);
         vm.label(deployer, "Deployer");
 
         depositVerifier = IDepositVerifier(address(new DepositGroth16Verifier()));
@@ -35,9 +34,7 @@ contract CoreTest is Test {
     }
 
     function test_initiate_1stPhase_Account() external {
-        vm.startPrank(alice);
-
-        vm.deal(alice, 1 ether);
+        startHoax(alice,  1 ether);
 
         //commitment hash =  poseidonHash(nullifier, 0, denomination)
         //nullifer hash =  poseidonHash(nullifier, 1, leafIndex, denomination)
@@ -55,9 +52,7 @@ contract CoreTest is Test {
     }
 
     function test_commit_2ndPhase_Callback() external {
-        vm.startPrank(alice);
-
-        vm.deal(alice, 1 ether);
+        startHoax(alice,  1 ether);
 
         bytes32 commitment = bytes32(uint256(1));
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
@@ -85,9 +80,7 @@ contract CoreTest is Test {
     }
 
     function test_clear_commitment_Callback() external {
-        vm.startPrank(alice);
-
-        vm.deal(alice, 1 ether);
+        startHoax(alice,  1 ether);
 
         bytes32 commitment = bytes32(uint256(1));
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
@@ -104,7 +97,6 @@ contract CoreTest is Test {
     }
 
     function test_deposit() external {
-
         startHoax(alice,  1 ether);
 
         uint256 newLeafIndex = 0;

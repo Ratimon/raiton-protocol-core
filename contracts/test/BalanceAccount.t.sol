@@ -23,9 +23,7 @@ contract BalanceAccountTest is Test {
     Core core;
 
     function setUp() public {
-        vm.startPrank(deployer);
-
-        vm.deal(deployer, 1 ether);
+        startHoax(deployer,  1 ether);
         vm.label(deployer, "Deployer");
 
         depositVerifier = IDepositVerifier(address(new DepositGroth16Verifier()));
@@ -36,9 +34,7 @@ contract BalanceAccountTest is Test {
     }
 
     function test_new_BalanceAccount() external {
-        vm.startPrank(alice);
-
-        vm.deal(alice, 1 ether);
+        startHoax(alice,  1 ether);
 
         bytes32 commitment = bytes32(uint256(1));
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
@@ -72,9 +68,7 @@ contract BalanceAccountTest is Test {
     }
 
     function test_commit_2ndPhase() external {
-        vm.startPrank(alice);
-
-        vm.deal(alice, 1 ether);
+        startHoax(alice,  1 ether);
 
         bytes32 commitment = bytes32(uint256(1));
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
@@ -95,9 +89,7 @@ contract BalanceAccountTest is Test {
     }
 
     function test_clear_commitment() external {
-        vm.startPrank(alice);
-
-        vm.deal(alice, 1 ether);
+        startHoax(alice,  1 ether);
 
         bytes32 commitment = bytes32(uint256(1));
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
