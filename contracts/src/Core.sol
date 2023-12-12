@@ -47,8 +47,14 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);
     event Insert(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
 
+    struct Proof {
+        uint256[2] a;
+        uint256[2][2] b;
+        uint256[2] c;
+    }
+
     constructor(IDepositVerifier _depositVerifier, uint256 _denomination, uint256 _paymentNumber) SortedList() {
-        require(_denomination > 0, "must be > than 0");
+        require(_denomination > 0, "Core: Denomination must > than 0");
         denomination = _denomination;
         paymentNumber = _paymentNumber;
         depositVerifier = _depositVerifier;
@@ -63,7 +69,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         noDelegateCall
         returns (address[] memory accounts)
     {
-        require(uint256(commitment) < FIELD_SIZE, "commitment not in field");
+        require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
 
         accounts = new address[](paymentNumber);
 
@@ -74,7 +80,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             // TODO : now hardcoded inflow and outflow as 1 and paymentNumber respectively
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
 
-            require(getPendingAccount[commitment][i] == address(0), "accound already deployed");
+            require(getPendingAccount[commitment][i] == address(0), "Core: Accound Already Deployed");
             getPendingAccount[commitment][i] = account;
             accounts[i] = account;
 
@@ -93,16 +99,15 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         payable
         override
     {
-        require(uint256(commitment) < FIELD_SIZE, "commitment not in field");
-        require(commitment != bytes32(0), "invalid commitment");
-
-        require(pendingCommitment[caller] == bytes32(0), "Pending commitment hash");
+        require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
+        require(commitment != bytes32(0), "Core: Invalid commitment");
+        require(pendingCommitment[caller] == bytes32(0), "Core: Already Commited");
 
         // still needed to prevent redundant hash from the same sender
-        require(!submittedCommitments[commitment], "The commitment has been submitted");
+        require(!submittedCommitments[commitment], "Core: Commitment Already Submitted");
 
         // only callable by child account(  ie deployer must be factory - address(this))
-        // TODO check if we need to include denomination
+        // TODO check if we need to include denominatio
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), commitment, nonce);
         delete getPendingAccount[commitment][nonce];
@@ -116,7 +121,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
     function clear_commitment_Callback(address caller, address account, uint256 nonce) external override {
         bytes32 _pendingCommitment = pendingCommitment[caller];
-        require(_pendingCommitment != bytes32(0), "not committed");
+        require(_pendingCommitment != bytes32(0), "Core: Not Commited Yet");
 
         CallbackValidation.verifyCallback(address(this), _pendingCommitment, nonce);
         delete pendingCommitment[caller];
@@ -124,6 +129,13 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         _removeAccount(account);
 
         emit Clear(_pendingCommitment,account, block.timestamp);
+    }
+
+    function deposit(Proof calldata _proof, bytes32 newRoot) external {
+
+        bytes32 _pendingCommitment = pendingCommitment[msg.sender];
+        require(_pendingCommitment != bytes32(0), "Core: Not Commited Yet");
+
     }
 
     // get
