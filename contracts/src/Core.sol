@@ -18,6 +18,15 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
     IDepositVerifier immutable depositVerifier;
 
+    // current index of the latest root
+    uint128 public currentRootIndex;
+
+    // index which the next deposit commitment hash should go into
+    uint128 public nextIndex;
+
+    // fixed size array of past roots to enable withdrawal using any last-ROOT_HISTORY_SIZE root from the past
+    bytes32[ROOT_HISTORY_SIZE] public roots;
+
     // store all states
     // add a redeployable stateless router to query the address
 
@@ -45,7 +54,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
     event Commit(bytes32 indexed commitment, address indexed account, uint256 amountIn, uint256 timestamp);
     event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);
-    event Insert(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
+    event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
 
     struct Proof {
         uint256[2] a;
@@ -135,6 +144,35 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
         bytes32 _pendingCommitment = pendingCommitment[msg.sender];
         require(_pendingCommitment != bytes32(0), "Core: Not Commited Yet");
+
+        uint256 _currentRootIndex = currentRootIndex;
+
+        require(
+            depositVerifier.verifyProof(
+                _proof.a,
+                _proof.b,
+                _proof.c,
+                [
+                    uint256(roots[_currentRootIndex]),
+                    uint256(_pendingCommitment),
+                    denomination,
+                    uint256(newRoot)
+                ]
+            ),
+            "Core: Invalid deposit proof"
+        );
+
+        delete pendingCommitment[msg.sender];
+
+        uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
+
+        currentRootIndex = newCurrentRootIndex;
+
+        roots[newCurrentRootIndex] = newRoot;
+        uint256 _nextIndex = nextIndex;
+
+        nextIndex += 1;
+        emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
 
     }
 
