@@ -43,8 +43,8 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     uint256 rotateCounter;
     uint256 rotateCounterCumulativeLast;
 
-    event Commit(bytes32 indexed commitment, address indexed account,uint256 amountIn, uint256 timestamp);
-    event Clear(bytes32 indexed commitment, uint256 timestamp);
+    event Commit(bytes32 indexed commitment, address indexed account, uint256 amountIn, uint256 timestamp);
+    event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);
     event Insert(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
 
     constructor(IDepositVerifier _depositVerifier, uint256 _denomination, uint256 _paymentNumber) SortedList() {
@@ -114,17 +114,16 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         emit Commit(commitment, account, amountIn, block.timestamp);
     }
 
-    function clear_commitment_Callback(address caller, uint256 nonce) external override {
-        bytes32 _pendingCommit = pendingCommitment[caller];
+    function clear_commitment_Callback(address caller, address account, uint256 nonce) external override {
+        bytes32 _pendingCommitment = pendingCommitment[caller];
+        require(_pendingCommitment != bytes32(0), "not committed");
 
-        require(_pendingCommit != bytes32(0), "not committed");
-
-        CallbackValidation.verifyCallback(address(this), _pendingCommit, nonce);
+        CallbackValidation.verifyCallback(address(this), _pendingCommitment, nonce);
         delete pendingCommitment[caller];
-        delete submittedCommitments[_pendingCommit];
-        _removeAccount(caller);
+        delete submittedCommitments[_pendingCommitment];
+        _removeAccount(account);
 
-        emit Clear(_pendingCommit, block.timestamp);
+        emit Clear(_pendingCommitment,account, block.timestamp);
     }
 
     // get

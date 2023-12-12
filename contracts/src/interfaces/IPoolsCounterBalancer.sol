@@ -8,5 +8,5 @@ interface IPoolsCounterBalancer {
         external
         payable;
 
-    function clear_commitment_Callback(address caller, uint256 nonce) external;
+    function clear_commitment_Callback(address caller, address account, uint256 nonce) external;
 }

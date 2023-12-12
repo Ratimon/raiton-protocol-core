@@ -79,10 +79,12 @@ contract BalanceAccount {
         // uint256 denomination = pendingCommit[msg.sender].denomination;
         // delete pendingCommit[msg.sender];
         currentStatus = Status.UNCOMMITED;
+        uint256 amountOut = denomination/cashInflows;// 1 ether/
+        currentBalance -= amountOut;
         // TODO deal with precision
         _processWithdraw(to, denomination);
 
-        IPoolsCounterBalancer(factory).clear_commitment_Callback(msg.sender, nonce);
+        IPoolsCounterBalancer(factory).clear_commitment_Callback(msg.sender, address(this), nonce);
 
     }
 
