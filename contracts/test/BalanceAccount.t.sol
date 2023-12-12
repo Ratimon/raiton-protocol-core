@@ -29,7 +29,7 @@ contract BalanceAccountTest is Test {
         vm.label(deployer, "Deployer");
 
         depositVerifier = IDepositVerifier(address(new DepositGroth16Verifier()));
-        core = new Core(depositVerifier, 1 ether, 4);
+        core = new Core(depositVerifier,20, 1 ether, 4);
         vm.label(address(core), "ECOperations");
 
         vm.stopPrank();

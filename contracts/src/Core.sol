@@ -14,7 +14,9 @@ import {SortedList} from "@main/utils/SortedList.sol";
 contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateCall {
     uint256 constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant ROOT_HISTORY_SIZE = 30;
+
     bytes32 constant initialRootZero = 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb; // Keccak256("Tornado")
+    uint256 immutable levels;
 
     IDepositVerifier immutable depositVerifier;
 
@@ -62,8 +64,15 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         uint256[2] c;
     }
 
-    constructor(IDepositVerifier _depositVerifier, uint256 _denomination, uint256 _paymentNumber) SortedList() {
+    constructor(IDepositVerifier _depositVerifier, uint256 _merkleTreeHeight, uint256 _denomination, uint256 _paymentNumber) SortedList() {
+        require(_merkleTreeHeight > 0, "Core: Levels should be greater than zero");
+        require(_merkleTreeHeight < 32, "Core: Levels should be less than 32");
+
         require(_denomination > 0, "Core: Denomination must > than 0");
+
+        levels = _merkleTreeHeight;
+        roots[0] = initialRootZero;
+
         denomination = _denomination;
         paymentNumber = _paymentNumber;
         depositVerifier = _depositVerifier;

@@ -28,7 +28,7 @@ contract CoreTest is Test {
         vm.label(deployer, "Deployer");
 
         depositVerifier = IDepositVerifier(address(new DepositGroth16Verifier()));
-        core = new Core(depositVerifier, 1 ether, 4);
+        core = new Core(depositVerifier, 20, 1 ether, 4);
         vm.label(address(core), "ECOperations");
 
         vm.stopPrank();
@@ -68,6 +68,7 @@ contract CoreTest is Test {
         assertEq( core.pendingCommitment(alice), bytes32(0));
         assertEq( core.submittedCommitments(commitment), false);
 
+        //todo: assert emit
         bytes32 returningCommitment = account_1.commit_2ndPhase{value: 1 ether}();
         assertEq( returningCommitment, commitment);
         assertEq( core.getPendingAccount(returningCommitment, 0), address(0));
@@ -84,6 +85,7 @@ contract CoreTest is Test {
     }
 
     function test_clear_commitment_Callback() external {
+        vm.startPrank(alice);
 
         vm.deal(alice, 1 ether);
 
@@ -93,10 +95,112 @@ contract CoreTest is Test {
         IAccount account_1 = IAccount(accounts[0]);
 
         account_1.commit_2ndPhase{value: 1 ether}();
+         //todo: assert emit
         account_1.clear_commitment(payable(alice));
 
         assertEq( core.pendingCommitment(alice), bytes32(0));
         assertEq( core.submittedCommitments(commitment), false);
+        vm.stopPrank();
+    }
 
+    function test_deposit() external {
+
+        startHoax(alice,  1 ether);
+
+        uint256 newLeafIndex = 0;
+        (bytes32 commitment, , bytes32 nullifier) = abi.decode(getDepositCommitmentHash(newLeafIndex, 1 ether), (bytes32, bytes32, bytes32));
+        bytes32[] memory pushedCommitments = new bytes32[](0) ;
+
+        // console2.log("commitment");
+        // console2.logBytes32(commitment);
+
+        uint256 preDepositUserBalance = alice.balance;
+
+        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+        IAccount account_1 = IAccount(accounts[0]);
+        account_1.commit_2ndPhase{value: 1 ether}();
+        // account_1.clear_commitment(payable(alice));
+
+        Core.Proof memory depositProof;
+        bytes32 newRoot;
+
+        {
+            (depositProof, newRoot) = abi.decode(
+                getDepositProve(
+                    newLeafIndex,
+                    core.roots(core.currentRootIndex()),
+                    1 ether, //amount
+                    nullifier,
+                    commitment,
+                    pushedCommitments
+                ),
+                (Core.Proof, bytes32)
+            );
+        }
+
+        
+        //todo: assert emit
+        core.deposit(depositProof, newRoot);
+
+        assertEq(preDepositUserBalance - alice.balance , 1 ether);
+
+        {
+            // assert tree root and elements are correct
+            (bytes32 preDepositRoot, uint256 elements, bytes32 postDepositRoot) = getJsTreeAssertions(pushedCommitments, commitment);
+            assertEq(preDepositRoot, core.roots(newLeafIndex));
+            assertEq(elements, core.nextIndex());
+            assertEq(postDepositRoot, core.roots(newLeafIndex + 1));
+        }
+
+        vm.stopPrank();
+
+    }
+
+    function getDepositCommitmentHash(uint256 leafIndex, uint256 denomination) internal returns (bytes memory) {
+        string[] memory inputs = new string[](4);
+        inputs[0] = "node";
+        inputs[1] = "test/utils/getCommitment.cjs";
+        inputs[2] = vm.toString(leafIndex);
+        inputs[3] = vm.toString(denomination);
+
+        return vm.ffi(inputs);
+    }
+
+    function getDepositProve(
+        uint256 leafIndex,
+        bytes32 oldRoot,
+        uint256 denomination,
+        bytes32 nullifier,
+        bytes32 commitmentHash,
+        bytes32[] memory pushedCommitments
+    ) private returns (bytes memory) {
+        string[] memory inputs = new string[](9);
+        inputs[0] = "node";
+        inputs[1] = "test/utils/getDepositProve.cjs";
+        inputs[2] = "20";
+        inputs[3] = vm.toString(leafIndex);
+        inputs[4] = vm.toString(oldRoot);
+        inputs[5] = vm.toString(commitmentHash);
+        inputs[6] = vm.toString(denomination);
+        inputs[7] = vm.toString(nullifier);
+        inputs[8] = vm.toString(abi.encode(pushedCommitments));
+
+        bytes memory result = vm.ffi(inputs);
+        return result;
+    }
+
+    function getJsTreeAssertions(bytes32[] memory pushedCommitments, bytes32 newCommitment)
+        private
+        returns (bytes32 root_before_commitment, uint256 height, bytes32 root_after_commitment)
+    {
+        string[] memory inputs = new string[](5);
+        inputs[0] = "node";
+        inputs[1] = "test/utils/tree.cjs";
+        inputs[2] = "20";
+        inputs[3] = vm.toString(abi.encode(pushedCommitments));
+        inputs[4] = vm.toString(newCommitment);
+
+        bytes memory result = vm.ffi(inputs);
+        (root_before_commitment, height, root_after_commitment) = abi.decode(result, (bytes32, uint256, bytes32));
     }
 }
