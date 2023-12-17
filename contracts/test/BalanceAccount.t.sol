@@ -11,33 +11,23 @@ import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 
+import {SharedHarness} from "@test/Harness.t.sol";
 
-contract BalanceAccountTest is Test {
-    string mnemonic = "test test test test test test test test test test test junk";
-    uint256 deployerPrivateKey = vm.deriveKey(mnemonic, "m/44'/60'/0'/0/", 1); //  address = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
 
-    address deployer = vm.addr(deployerPrivateKey);
-    address alice = makeAddr("Alice");
+contract BalanceAccountTest is SharedHarness {
 
-    IDepositVerifier depositVerifier;
-    Core core;
-
-    function setUp() public {
-        startHoax(deployer,  1 ether);
-        vm.label(deployer, "Deployer");
-
-        depositVerifier = IDepositVerifier(address(new DepositGroth16Verifier()));
-        core = new Core(depositVerifier,20, 1 ether, 4);
-        vm.label(address(core), "ECOperations");
-
-        vm.stopPrank();
+    function setUp() public virtual override {
+        super.setUp();
+        vm.label(address(this), "BalanceAccountTest");
     }
 
     function test_new_BalanceAccount() external {
-        startHoax(alice,  1 ether);
+        
+        uint256 newLeafIndex = 0;
+        uint256 denomination = 1 ether;
+        (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
 
-        bytes32 commitment = bytes32(uint256(1));
-        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+        address[] memory accounts = deployAccounts(alice, commitment, denomination);
 
         assertEq32(IAccount(accounts[0]).commitment(), commitment);
         assertEq32(IAccount(accounts[1]).commitment(), commitment);
