@@ -30,7 +30,8 @@ contract CoreTest is SharedHarness {
         uint256 denomination = 1 ether;
         (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
 
-        address[] memory accounts = deployAccounts(alice, commitment, denomination);
+        // //todo: adding assert for deployAccounts
+        address[] memory accounts = deployAccounts(alice, commitment);
 
         assertEq( core.getPendingAccount(commitment, 0), accounts[0]);
         assertEq( core.getPendingAccount(commitment, 1), accounts[1]);
@@ -40,31 +41,30 @@ contract CoreTest is SharedHarness {
     }
 
     function test_commit_2ndPhase_Callback() external {
-        startHoax(alice,  1 ether);
 
-        bytes32 commitment = bytes32(uint256(1));
-        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+        uint256 newLeafIndex = 0;
+        uint256 denomination = 1 ether;
+        (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
 
-        IAccount account_1 = IAccount(accounts[0]);
+        address[] memory accounts = deployAccounts(alice, commitment);
 
-        assertEq( core.getPendingAccount(commitment, 1), accounts[1]);
-        assertEq( core.pendingCommitment(alice), bytes32(0));
-        assertEq( core.submittedCommitments(commitment), false);
+        // It is single premium just needs to abstract four payments into single one via router
+        // to do fix amount
+        // //todo: assert emit
+        commitAndAssert(alice, accounts[0], commitment, 0, denomination);
+        // commitAndAssert(alice, accounts[1], commitment, 1, denomination);
+        // commitAndAssert(alice, accounts[2], commitment, 2, denomination);
+        // commitAndAssert(alice, accounts[3], commitment, 3, denomination);
 
-        //todo: assert emit
-        bytes32 returningCommitment = account_1.commit_2ndPhase{value: 1 ether}();
-        assertEq( returningCommitment, commitment);
-        assertEq( core.getPendingAccount(returningCommitment, 0), address(0));
-        assertEq( core.pendingCommitment(alice), returningCommitment);
-        assertEq( core.submittedCommitments(returningCommitment), true);
+        //////////////////
 
         address[] memory topAccounts = core.getTop(1);
-        assertEq(topAccounts[0], address(account_1));
+        assertEq(topAccounts[0], accounts[0]);
 
         address lowestAccount = core.getBottom();
-        assertEq(lowestAccount, address(account_1));
+        assertEq(lowestAccount, accounts[0]);
 
-        vm.stopPrank();
+        // vm.stopPrank();
     }
 
     function test_clear_commitment_Callback() external {

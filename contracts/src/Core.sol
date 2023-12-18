@@ -96,6 +96,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             //sanity check for commitment
 
             // TODO : now hardcoded inflow and outflow as 1 and paymentNumber respectively
+            // TODO : denomination should be / 4 ?
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
 
             require(getPendingAccount[commitment][i] == address(0), "Core: Accound Already Deployed");
@@ -122,6 +123,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         require(pendingCommitment[caller] == bytes32(0), "Core: Already Commited");
 
         // still needed to prevent redundant hash from the same sender
+        //  TODO another mechanism to prevent from redundant deposit
         require(!submittedCommitments[commitment], "Core: Commitment Already Submitted");
 
         // only callable by child account(  ie deployer must be factory - address(this))
@@ -130,9 +132,9 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         CallbackValidation.verifyCallback(address(this), commitment, nonce);
         delete getPendingAccount[commitment][nonce];
         pendingCommitment[caller] = commitment;
-        submittedCommitments[commitment] = true;
-
         _addAccount(account, amountIn);
+        //  // TODO removed or use getPendingAccount
+        submittedCommitments[commitment] = true;
 
         emit Commit(commitment, account, amountIn, block.timestamp);
     }
@@ -143,8 +145,8 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
         CallbackValidation.verifyCallback(address(this), _pendingCommitment, nonce);
         delete pendingCommitment[caller];
-        delete submittedCommitments[_pendingCommitment];
         _removeAccount(account);
+        delete submittedCommitments[_pendingCommitment];
 
         emit Clear(_pendingCommitment,account, block.timestamp);
     }
@@ -156,6 +158,8 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
         uint256 _currentRootIndex = currentRootIndex;
 
+        // fix denomination 
+        // TODO use from pending commitment AND _removeAccount()
         require(
             depositVerifier.verifyProof(
                 _proof.a,

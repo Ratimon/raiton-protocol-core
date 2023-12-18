@@ -35,12 +35,33 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
-    function deployAccounts(address user, bytes32 commitment, uint256 amount)
+    function deployAccounts(address user, bytes32 commitment)
         internal
         returns (address[] memory accounts)
     {
-        startHoax(user, amount);
+        // startHoax(user, amount);
+        vm.startPrank(user);
         accounts = core.initiate_1stPhase_Account(commitment);
+
+        vm.stopPrank();
+    }
+
+    function commitAndAssert(address user, address account, bytes32 commitment, uint256 nonce, uint256 amount)
+        internal
+        returns (bytes32 returningCommitment)
+    {
+        startHoax(user, amount);
+
+        assertEq( core.getPendingAccount(commitment, nonce), account);
+        assertEq( core.pendingCommitment(user), bytes32(0));
+        assertEq( core.submittedCommitments(commitment), false);
+
+        returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
+        assertEq( returningCommitment, commitment);
+
+        assertEq( core.getPendingAccount(returningCommitment, nonce), address(0));
+        assertEq( core.pendingCommitment(user), returningCommitment);
+        assertEq( core.submittedCommitments(returningCommitment), true);
 
         vm.stopPrank();
     }

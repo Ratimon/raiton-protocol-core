@@ -22,12 +22,12 @@ contract BalanceAccountTest is SharedHarness {
     }
 
     function test_new_BalanceAccount() external {
-        
+
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
         (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
 
-        address[] memory accounts = deployAccounts(alice, commitment, denomination);
+        address[] memory accounts = deployAccounts(alice, commitment);
 
         assertEq32(IAccount(accounts[0]).commitment(), commitment);
         assertEq32(IAccount(accounts[1]).commitment(), commitment);
