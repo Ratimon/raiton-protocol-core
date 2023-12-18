@@ -54,14 +54,12 @@ contract SharedHarness is Test {
 
         assertEq( core.getPendingAccount(commitment, nonce), account);
         assertEq( core.pendingCommitment(user), bytes32(0));
-        assertEq( core.submittedCommitments(commitment), false);
 
         returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
         assertEq( returningCommitment, commitment);
 
         assertEq( core.getPendingAccount(returningCommitment, nonce), address(0));
         assertEq( core.pendingCommitment(user), returningCommitment);
-        assertEq( core.submittedCommitments(returningCommitment), true);
 
         vm.stopPrank();
     }

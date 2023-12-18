@@ -7,7 +7,5 @@ interface ICore {
 
     function pendingCommitment(address account) external returns (bytes32);
 
-    function submittedCommitments(bytes32 commitment) external returns (bool);
-
     function stats() external view returns (uint256 averageLiquidityCoverageRatio, uint256 totalAccountTurnOver);
 }

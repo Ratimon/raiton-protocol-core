@@ -43,8 +43,6 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     mapping(bytes32 => mapping(uint256 => address)) public getPendingAccount;
 
     // TODO ?
-    mapping(bytes32 => bool) public submittedCommitments;
-    // TODO ?
     mapping(address => bytes32) public pendingCommitment;
 
     mapping(address => address) public accountToOracle;
@@ -99,7 +97,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             // TODO : denomination should be / 4 ?
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
 
-            require(getPendingAccount[commitment][i] == address(0), "Core: Accound Already Deployed");
+            require(getPendingAccount[commitment][i] == address(0), "Core: Account Already Deployed");
             getPendingAccount[commitment][i] = account;
             accounts[i] = account;
 
@@ -124,7 +122,6 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
         // still needed to prevent redundant hash from the same sender
         //  TODO another mechanism to prevent from redundant deposit
-        require(!submittedCommitments[commitment], "Core: Commitment Already Submitted");
 
         // only callable by child account(  ie deployer must be factory - address(this))
         // TODO check if we need to include denominatio
@@ -133,8 +130,6 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         delete getPendingAccount[commitment][nonce];
         pendingCommitment[caller] = commitment;
         _addAccount(account, amountIn);
-        //  // TODO removed or use getPendingAccount
-        submittedCommitments[commitment] = true;
 
         emit Commit(commitment, account, amountIn, block.timestamp);
     }
@@ -146,7 +141,6 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         CallbackValidation.verifyCallback(address(this), _pendingCommitment, nonce);
         delete pendingCommitment[caller];
         _removeAccount(account);
-        delete submittedCommitments[_pendingCommitment];
 
         emit Clear(_pendingCommitment,account, block.timestamp);
     }

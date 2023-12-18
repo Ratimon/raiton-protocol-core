@@ -79,7 +79,6 @@ contract CoreTest is SharedHarness {
         account_1.clear_commitment(payable(alice));
 
         assertEq( core.pendingCommitment(alice), bytes32(0));
-        assertEq( core.submittedCommitments(commitment), false);
         vm.stopPrank();
     }
 
