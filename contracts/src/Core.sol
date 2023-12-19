@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {console} from "@forge-std/console.sol";
-
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
@@ -173,14 +171,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
         CallbackValidation.verifyCallback(address(this), _pendingCommitment, nonce);
 
-        // console.log('before pendingCommitment[account].commitment');
-        // console.logBytes32(pendingCommitment[account].commitment);
-        
         delete pendingCommitment[account].commitment;
-
-        // console.log('before pendingCommitment[account].commitment');
-        // console.logBytes32(pendingCommitment[account].commitment);
-
         delete pendingCommitment[account].committedAmount;
         delete ownerToCommitment[caller].commitment;
         delete ownerToCommitment[caller].committedAmount;

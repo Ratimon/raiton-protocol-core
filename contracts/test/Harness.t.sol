@@ -11,7 +11,6 @@ import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 
-
 contract SharedHarness is Test {
 
     string mnemonic = "test test test test test test test test test test test junk";
@@ -53,17 +52,12 @@ contract SharedHarness is Test {
         startHoax(user, amount);
 
         assertEq( core.getPendingAccount(commitment, nonce), account);
-        // assertEq( core.pendingCommitment(user), bytes32(0));
         assertEq( core.getCommitment(account), commitment);
 
         returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
         assertEq( returningCommitment, commitment);
 
-        console2.log("returningCommitment");
-        console2.logBytes32(returningCommitment);
-
         assertEq( core.getPendingAccount(returningCommitment, nonce), address(0));
-        // assertEq( core.pendingCommitment(user), returningCommitment);
         assertEq( core.getCommitment(account), returningCommitment);
 
         vm.stopPrank();
