@@ -31,12 +31,7 @@ contract CoreTest is SharedHarness {
         (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
 
         // //todo: adding assert for deployAccounts
-        address[] memory accounts = deployAccounts(alice, commitment);
-
-        assertEq( core.getPendingAccount(commitment, 0), accounts[0]);
-        assertEq( core.getPendingAccount(commitment, 1), accounts[1]);
-        assertEq( core.getPendingAccount(commitment, 2), accounts[2]);
-        assertEq( core.getPendingAccount(commitment, 3), accounts[3]);
+        deployAndAssertCore(alice, commitment);
     }
 
     function test_commit_2ndPhase_Callback() external {
@@ -45,20 +40,19 @@ contract CoreTest is SharedHarness {
         uint256 denomination = 1 ether;
         (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
 
-        address[] memory accounts = deployAccounts(alice, commitment);
+        address[] memory accounts = deployAndAssertCore(alice, commitment);
 
         // It is single premium just needs to abstract four payments into single one via router
         // to do fix amount
         // //todo: assert emit
-        commitAndAssert(alice, accounts[0], commitment, 0, denomination);
-        commitAndAssert(alice, accounts[1], commitment, 1, denomination);
-        commitAndAssert(alice, accounts[2], commitment, 2, denomination);
-        commitAndAssert(alice, accounts[3], commitment, 3, denomination);
+        commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
+        commitAndAssertCore(alice, accounts[1], commitment, 1, denomination);
+        commitAndAssertCore(alice, accounts[2], commitment, 2, denomination);
+        commitAndAssertCore(alice, accounts[3], commitment, 3, denomination);
 
         address[] memory topAccounts = core.getTop(2);
         assertEq(topAccounts[0], accounts[0]);
         assertEq(topAccounts[1], accounts[1]);
-        assertEq(topAccounts[2], accounts[2]);
 
         address lowestAccount = core.getBottom();
         assertEq(lowestAccount, accounts[3]);
@@ -91,7 +85,6 @@ contract CoreTest is SharedHarness {
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
         IAccount account_1 = IAccount(accounts[0]);
         account_1.commit_2ndPhase{value: 1 ether}();
-        // account_1.clear_commitment(payable(alice));
 
         Core.Proof memory depositProof;
         bytes32 newRoot;

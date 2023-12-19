@@ -27,32 +27,12 @@ contract BalanceAccountTest is SharedHarness {
         uint256 denomination = 1 ether;
         (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
 
-        address[] memory accounts = deployAccounts(alice, commitment);
+        address[] memory accounts = deployAndAssertCore(alice, commitment);
 
-        assertEq32(IAccount(accounts[0]).commitment(), commitment);
-        assertEq32(IAccount(accounts[1]).commitment(), commitment);
-        assertEq32(IAccount(accounts[2]).commitment(), commitment);
-        assertEq32(IAccount(accounts[3]).commitment(), commitment);
-
-        assertEq(IAccount(accounts[0]).denomination(), 1 ether);
-        assertEq(IAccount(accounts[1]).denomination(), 1 ether);
-        assertEq(IAccount(accounts[2]).denomination(), 1 ether);
-        assertEq(IAccount(accounts[3]).denomination(), 1 ether);
-
-        assertEq(IAccount(accounts[0]).cashInflows(), 1);
-        assertEq(IAccount(accounts[1]).cashInflows(), 1);
-        assertEq(IAccount(accounts[2]).cashInflows(), 1);
-        assertEq(IAccount(accounts[3]).cashInflows(), 1);
-
-        assertEq(IAccount(accounts[0]).cashOutflows(), 4);
-        assertEq(IAccount(accounts[1]).cashOutflows(), 4);
-        assertEq(IAccount(accounts[2]).cashOutflows(), 4);
-        assertEq(IAccount(accounts[3]).cashOutflows(), 4);
-
-        assertEq(IAccount(accounts[0]).nonce(), 0);
-        assertEq(IAccount(accounts[1]).nonce(), 1);
-        assertEq(IAccount(accounts[2]).nonce(), 2);
-        assertEq(IAccount(accounts[3]).nonce(), 3);
+        assertAccount(alice, accounts[0], commitment, 0, denomination);
+        assertAccount(bob, accounts[1], commitment, 1, denomination);
+        assertAccount(carol, accounts[2], commitment, 2, denomination);
+        assertAccount(dave, accounts[3], commitment, 3, denomination);
 
         vm.stopPrank();
     }

@@ -18,6 +18,9 @@ contract SharedHarness is Test {
 
     address deployer = vm.addr(deployerPrivateKey);
     address alice = makeAddr("Alice");
+    address bob = makeAddr("Bob");
+    address carol = makeAddr("Carol");
+    address dave = makeAddr("Dave");
 
     IDepositVerifier depositVerifier;
     Core core;
@@ -34,7 +37,7 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
-    function deployAccounts(address user, bytes32 commitment)
+    function deployAndAssertCore(address user, bytes32 commitment)
         internal
         returns (address[] memory accounts)
     {
@@ -42,10 +45,32 @@ contract SharedHarness is Test {
 
         accounts = core.initiate_1stPhase_Account(commitment);
 
+        assertEq( core.getPendingAccount(commitment, 0), accounts[0]);
+        assertEq( core.getPendingAccount(commitment, 1), accounts[1]);
+        assertEq( core.getPendingAccount(commitment, 2), accounts[2]);
+        assertEq( core.getPendingAccount(commitment, 3), accounts[3]);
+
         vm.stopPrank();
     }
 
-    function commitAndAssert(address user, address account, bytes32 commitment, uint256 nonce, uint256 amount)
+    function assertAccount(address user, address account, bytes32 commitment,uint256 nonce, uint256 amount)
+        internal
+    {
+        vm.startPrank(user);
+
+        IAccount balanceAccount = IAccount(account);
+
+        assertEq32(balanceAccount.commitment(), commitment);
+        assertEq(balanceAccount.denomination(), amount);
+        assertEq(balanceAccount.cashInflows(), 1);
+        assertEq(balanceAccount.cashOutflows(), 4);
+        assertEq(balanceAccount.nonce(), nonce);
+
+
+        vm.stopPrank();
+    }
+
+    function commitAndAssertCore(address user, address account, bytes32 commitment, uint256 nonce, uint256 amount)
         internal
         returns (bytes32 returningCommitment)
     {
