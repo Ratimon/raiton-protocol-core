@@ -66,7 +66,6 @@ contract SharedHarness is Test {
         assertEq(balanceAccount.cashOutflows(), 4);
         assertEq(balanceAccount.nonce(), nonce);
 
-
         vm.stopPrank();
     }
 
@@ -86,6 +85,26 @@ contract SharedHarness is Test {
         assertEq( core.getPendingAccount(returningCommitment, nonce), address(0));
         assertEq( core.getCommitment(account), returningCommitment);
         assertEq( core.getCommittedAmount(account), preCoreBalanceState + amount);
+
+        vm.stopPrank();
+    }
+
+    function clearAndAssertCore(address user, address account, address to, uint256 amount)
+        internal
+    {
+        vm.startPrank(user);
+
+        assertTrue(core.getCommitment(account) != bytes32(0));
+        assertTrue(core.getCommittedAmount(account) != 0 );
+
+        uint256 preClearToBalance = to.balance;
+
+        IAccount balanceAccount = IAccount(account);
+        balanceAccount.clear_commitment(payable(to));
+
+        assertEq( core.getCommitment(account), bytes32(0));
+        assertEq( core.getCommittedAmount(account), 0);
+        assertEq(to.balance - preClearToBalance, amount);
 
         vm.stopPrank();
     }

@@ -59,18 +59,19 @@ contract CoreTest is SharedHarness {
     }
 
     function test_clear_commitment_Callback() external {
-        startHoax(alice,  1 ether);
 
-        bytes32 commitment = bytes32(uint256(1));
-        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+        uint256 newLeafIndex = 0;
+        uint256 denomination = 1 ether;
+        (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
+        
+        address[] memory accounts = deployAndAssertCore(alice, commitment);
 
-        IAccount account_1 = IAccount(accounts[0]);
-        account_1.commit_2ndPhase{value: 1 ether}();
-         //todo: assert emit
-        account_1.clear_commitment(payable(alice));
+        commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
+        clearAndAssertCore(alice, accounts[0], bob, denomination);
 
-        assertEq( core.getCommitment(accounts[0]), bytes32(0));
-        vm.stopPrank();
+        vm.expectRevert(bytes("SortedList: k must be > than list size"));
+        core.getTop(2);
+
     }
 
     function test_deposit() external {
