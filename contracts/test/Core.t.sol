@@ -37,7 +37,6 @@ contract CoreTest is SharedHarness {
         assertEq( core.getPendingAccount(commitment, 1), accounts[1]);
         assertEq( core.getPendingAccount(commitment, 2), accounts[2]);
         assertEq( core.getPendingAccount(commitment, 3), accounts[3]);
-
     }
 
     function test_commit_2ndPhase_Callback() external {
@@ -52,19 +51,17 @@ contract CoreTest is SharedHarness {
         // to do fix amount
         // //todo: assert emit
         commitAndAssert(alice, accounts[0], commitment, 0, denomination);
-        // commitAndAssert(alice, accounts[1], commitment, 1, denomination);
-        // commitAndAssert(alice, accounts[2], commitment, 2, denomination);
-        // commitAndAssert(alice, accounts[3], commitment, 3, denomination);
+        commitAndAssert(alice, accounts[1], commitment, 1, denomination);
+        commitAndAssert(alice, accounts[2], commitment, 2, denomination);
+        commitAndAssert(alice, accounts[3], commitment, 3, denomination);
 
-        //////////////////
-
-        address[] memory topAccounts = core.getTop(1);
+        address[] memory topAccounts = core.getTop(2);
         assertEq(topAccounts[0], accounts[0]);
+        assertEq(topAccounts[1], accounts[1]);
+        assertEq(topAccounts[2], accounts[2]);
 
         address lowestAccount = core.getBottom();
-        assertEq(lowestAccount, accounts[0]);
-
-        // vm.stopPrank();
+        assertEq(lowestAccount, accounts[3]);
     }
 
     function test_clear_commitment_Callback() external {
@@ -78,7 +75,6 @@ contract CoreTest is SharedHarness {
          //todo: assert emit
         account_1.clear_commitment(payable(alice));
 
-        // assertEq( core.pendingCommitment(alice), bytes32(0));
         assertEq( core.getCommitment(accounts[0]), bytes32(0));
         vm.stopPrank();
     }

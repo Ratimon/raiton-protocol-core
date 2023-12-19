@@ -38,8 +38,8 @@ contract SharedHarness is Test {
         internal
         returns (address[] memory accounts)
     {
-        // startHoax(user, amount);
         vm.startPrank(user);
+
         accounts = core.initiate_1stPhase_Account(commitment);
 
         vm.stopPrank();
@@ -53,12 +53,14 @@ contract SharedHarness is Test {
 
         assertEq( core.getPendingAccount(commitment, nonce), account);
         assertEq( core.getCommitment(account), commitment);
+        uint256 preCoreBalanceState = core.getCommittedAmount(account);
 
         returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
         assertEq( returningCommitment, commitment);
 
         assertEq( core.getPendingAccount(returningCommitment, nonce), address(0));
         assertEq( core.getCommitment(account), returningCommitment);
+        assertEq( core.getCommittedAmount(account), preCoreBalanceState + amount);
 
         vm.stopPrank();
     }
