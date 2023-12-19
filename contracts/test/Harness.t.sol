@@ -53,13 +53,18 @@ contract SharedHarness is Test {
         startHoax(user, amount);
 
         assertEq( core.getPendingAccount(commitment, nonce), account);
-        assertEq( core.pendingCommitment(user), bytes32(0));
+        // assertEq( core.pendingCommitment(user), bytes32(0));
+        assertEq( core.getCommitment(account), commitment);
 
         returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
         assertEq( returningCommitment, commitment);
 
+        console2.log("returningCommitment");
+        console2.logBytes32(returningCommitment);
+
         assertEq( core.getPendingAccount(returningCommitment, nonce), address(0));
-        assertEq( core.pendingCommitment(user), returningCommitment);
+        // assertEq( core.pendingCommitment(user), returningCommitment);
+        assertEq( core.getCommitment(account), returningCommitment);
 
         vm.stopPrank();
     }

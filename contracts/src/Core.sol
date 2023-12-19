@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
+import {console} from "@forge-std/console.sol";
+
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
@@ -43,7 +45,8 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     mapping(bytes32 => mapping(uint256 => address)) public getPendingAccount;
 
     // TODO ?
-    mapping(address => bytes32) public pendingCommitment;
+    mapping(address => DepositData) private pendingCommitment;
+    mapping(address => DepositData) public ownerToCommitment;
 
     mapping(address => address) public accountToOracle;
 
@@ -55,6 +58,13 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     event Commit(bytes32 indexed commitment, address indexed account, uint256 amountIn, uint256 timestamp);
     event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);
     event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
+
+    // TODO Add isCommitSettle?
+    struct DepositData {
+        bytes32 commitment;
+        uint256 committedAmount;
+        address account;
+    }
 
     struct Proof {
         uint256[2] a;
@@ -86,6 +96,8 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         returns (address[] memory accounts)
     {
         require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
+        require(commitment != bytes32(0), "Core: Invalid commitment");
+        // require(pendingCommitment[msg.sender].commitment == bytes32(0), "Core: Already Deployed");
 
         accounts = new address[](paymentNumber);
 
@@ -96,9 +108,17 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             // TODO : now hardcoded inflow and outflow as 1 and paymentNumber respectively
             // TODO : denomination should be / 4 ?
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
+            require(getPendingAccount[commitment][i] == address(0), "Core: Account Already Created");
 
-            require(getPendingAccount[commitment][i] == address(0), "Core: Account Already Deployed");
+             // TODO : do some optimization to query balanceAccount address? like mapping address to getPendingAccount
+             // TODO : like getAccountTOCommit(commitment)
             getPendingAccount[commitment][i] = account;
+
+            DepositData storage depositData = pendingCommitment[account];
+            depositData.commitment = commitment;
+            depositData.account = account;
+            // pendingCommitment[msg.sender] = DepositData({commitment: commitment, commitedAmount: 0});
+
             accounts[i] = account;
 
             // TODO emit event
@@ -117,38 +137,70 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         override
     {
         require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
+        // ??
         require(commitment != bytes32(0), "Core: Invalid commitment");
-        require(pendingCommitment[caller] == bytes32(0), "Core: Already Commited");
 
+        DepositData storage depositData = pendingCommitment[account];
+        //TODO check again
+        require(depositData.commitment == commitment, "Core: Wrong Commitment or Account");
         // still needed to prevent redundant hash from the same sender
         //  TODO another mechanism to prevent from redundant deposit
+        require(depositData.committedAmount < denomination, "Core: Amount Commited Already exceeded");
+        require(depositData.account == account, "Core: Wrong Account");
 
         // only callable by child account(  ie deployer must be factory - address(this))
         // TODO check if we need to include denominatio
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), commitment, nonce);
         delete getPendingAccount[commitment][nonce];
-        pendingCommitment[caller] = commitment;
+        // pendingCommitment[caller] = commitment;
+
+        depositData.committedAmount += amountIn;
+        ownerToCommitment[caller] = depositData;
+
+        // TODO Change to updateAcccount and test _addAccount(,0) and getTop for SortedList
         _addAccount(account, amountIn);
 
         emit Commit(commitment, account, amountIn, block.timestamp);
     }
 
     function clear_commitment_Callback(address caller, address account, uint256 nonce) external override {
-        bytes32 _pendingCommitment = pendingCommitment[caller];
+        DepositData memory depositData = pendingCommitment[account];
+        bytes32 _pendingCommitment = depositData.commitment;
         require(_pendingCommitment != bytes32(0), "Core: Not Commited Yet");
+        require(depositData.committedAmount != 0, "Core: Not Amount to Clear");
+        require(depositData.account == account, "Core: Wrong Account");
 
         CallbackValidation.verifyCallback(address(this), _pendingCommitment, nonce);
-        delete pendingCommitment[caller];
+
+        // console.log('before pendingCommitment[account].commitment');
+        // console.logBytes32(pendingCommitment[account].commitment);
+        
+        delete pendingCommitment[account].commitment;
+
+        // console.log('before pendingCommitment[account].commitment');
+        // console.logBytes32(pendingCommitment[account].commitment);
+
+        delete pendingCommitment[account].committedAmount;
+        delete ownerToCommitment[caller].commitment;
+        delete ownerToCommitment[caller].committedAmount;
+
         _removeAccount(account);
 
-        emit Clear(_pendingCommitment,account, block.timestamp);
+        emit Clear(_pendingCommitment, account, block.timestamp);
     }
 
-    function deposit(Proof calldata _proof, bytes32 newRoot) external {
+    /**
+    * @dev let users update the current merkle root by providing a proof that proves they added `ownerToCommitment[msg.sender]` to the current merkle tree root `roots[currentRootIndex]` and verifying it onchain
+    */
+    function deposit( Proof calldata _proof, bytes32 newRoot) external {
 
-        bytes32 _pendingCommitment = pendingCommitment[msg.sender];
+        DepositData memory depositData = ownerToCommitment[msg.sender];
+        bytes32 _pendingCommitment = depositData.commitment;
+        uint256 _commitedAmount = depositData.committedAmount;
+
         require(_pendingCommitment != bytes32(0), "Core: Not Commited Yet");
+        require(_commitedAmount == denomination, "Core: Amount Commited Not Enough");
 
         uint256 _currentRootIndex = currentRootIndex;
 
@@ -169,7 +221,8 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
             "Core: Invalid deposit proof"
         );
 
-        delete pendingCommitment[msg.sender];
+        delete pendingCommitment[depositData.account];
+        delete ownerToCommitment[msg.sender];
 
         uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
 
@@ -182,6 +235,15 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
 
     }
+
+    function getCommitment(address account) external view returns (bytes32) {
+        return pendingCommitment[account].commitment;
+    }
+
+    function getCommittedAmount(address account) external view returns (uint256) {
+        return pendingCommitment[account].committedAmount;
+    }
+
 
     // get
     // 1) stat (loop)

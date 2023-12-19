@@ -78,7 +78,8 @@ contract CoreTest is SharedHarness {
          //todo: assert emit
         account_1.clear_commitment(payable(alice));
 
-        assertEq( core.pendingCommitment(alice), bytes32(0));
+        // assertEq( core.pendingCommitment(alice), bytes32(0));
+        assertEq( core.getCommitment(accounts[0]), bytes32(0));
         vm.stopPrank();
     }
 
@@ -105,7 +106,7 @@ contract CoreTest is SharedHarness {
                     newLeafIndex,
                     core.roots(core.currentRootIndex()),
                     1 ether, //amount
-                    nullifier,
+                    nullifier, //secret
                     commitment,
                     pushedCommitments
                 ),
