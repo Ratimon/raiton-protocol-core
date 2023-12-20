@@ -9,6 +9,6 @@ library CallbackValidation {
     function verifyCallback(address factory, bytes32 commitment, uint256 nonce) internal view returns (IAccount pool) {
         pool = IAccount(BalanceAccountAddress.computeAddress(factory, commitment, nonce));
 
-        require(msg.sender == address(pool));
+        require(msg.sender == address(pool), "Wrong Bytecode");
     }
 }
