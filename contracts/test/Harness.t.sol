@@ -77,14 +77,29 @@ contract SharedHarness is Test {
 
         assertEq( core.getPendingAccount(commitment, nonce), account);
         assertEq( core.getPendingCommitment(account), commitment);
-        uint256 preCoreBalanceState = core.getPendingCommittedAmount(account);
+
+        uint256 prePendingCommittedAmount = core.getPendingCommittedAmount(account);
+        uint256 preOwnerCommittedAmount = core.getOwnerCommittedAmount(user);
 
         returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
         assertEq( returningCommitment, commitment);
 
         assertEq( core.getPendingAccount(returningCommitment, nonce), address(0));
+
         assertEq( core.getPendingCommitment(account), returningCommitment);
-        assertEq( core.getPendingCommittedAmount(account), preCoreBalanceState + amount);
+        assertEq( core.getPendingCommittedAmount(account), prePendingCommittedAmount + amount);
+
+        assertEq( core.getOwnerCommitment(user), returningCommitment);
+        assertEq( core.getOwnerCommittedAmount(user), preOwnerCommittedAmount + amount);
+
+        console2.log('core.getOwnerCommittedAmount(user)', core.getOwnerCommittedAmount(user));
+        console2.log('preOwnerCommittedAmount', preOwnerCommittedAmount);
+        console2.log('amount', amount);
+
+
+        // assertEq( core.getOwnerCommittedAmount(user), core.getPendingCommittedAmount(account));
+
+       
 
         vm.stopPrank();
     }

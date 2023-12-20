@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
+import {console} from "@forge-std/console.sol";
+
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {ICore} from "@main/interfaces/ICore.sol";
@@ -155,7 +157,14 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         // pendingDeposit[caller] = commitment;
 
         depositData.committedAmount += amountIn;
-        ownerToDeposit[caller] = depositData;
+        ownerToDeposit[caller].commitment =  commitment;
+        ownerToDeposit[caller].committedAmount += amountIn;
+
+        // ownerToDeposit[caller] = depositData;
+
+        console.log("pendingDeposit[account].committedAmount", pendingDeposit[account].committedAmount);
+        console.log("ownerToDeposit[caller].committedAmount", ownerToDeposit[caller].committedAmount);
+
 
         // TODO Change to updateAcccount and test _addAccount(,0) and getTop for SortedList
         _addAccount(account, amountIn);
@@ -236,12 +245,12 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         return pendingDeposit[account].committedAmount;
     }
 
-    function getOwnerCommitment(address caller) external view returns (bytes32) {
-        return ownerToDeposit[caller].commitment;
+    function getOwnerCommitment(address owner) external view returns (bytes32) {
+        return ownerToDeposit[owner].commitment;
     }
 
-    function getOwnerCommittedAmount(address caller) external view returns (uint256) {
-        return ownerToDeposit[caller].committedAmount;
+    function getOwnerCommittedAmount(address owner) external view returns (uint256) {
+        return ownerToDeposit[owner].committedAmount;
     }
 
 
