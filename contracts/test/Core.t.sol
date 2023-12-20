@@ -13,32 +13,30 @@ import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/Deposit
 
 import {SharedHarness} from "@test/Harness.t.sol";
 
-
 contract CoreTest is SharedHarness {
-
     function setUp() public virtual override {
         super.setUp();
         vm.label(address(this), "CoreTest");
     }
 
     function test_initiate_1stPhase_Account() external {
-
         //commitment hash =  poseidonHash(nullifier, 0, denomination)
         //nullifer hash =  poseidonHash(nullifier, 1, leafIndex, denomination)
 
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
-        (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
+        (bytes32 commitment,,) =
+            abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
         // //todo: adding assert for deployAccounts
         deployAndAssertCore(alice, commitment);
     }
 
     function test_commit_2ndPhase_Callback() external {
-
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
-        (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
+        (bytes32 commitment,,) =
+            abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
         address[] memory accounts = deployAndAssertCore(alice, commitment);
 
@@ -59,10 +57,10 @@ contract CoreTest is SharedHarness {
     }
 
     function test_clear_commitment_Callback() external {
-
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
-        (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
+        (bytes32 commitment,,) =
+            abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
         address[] memory accounts = deployAndAssertCore(alice, commitment);
         commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
@@ -71,21 +69,19 @@ contract CoreTest is SharedHarness {
 
         vm.expectRevert(bytes("SortedList: k must be > than list size"));
         core.getTop(2);
-
     }
 
     function test_deposit() external {
-
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
-        (bytes32 commitment, , bytes32 nullifier) = abi.decode(getDepositCommitmentHash(newLeafIndex, 1 ether), (bytes32, bytes32, bytes32));
-        bytes32[] memory pushedCommitments = new bytes32[](0) ;
+        (bytes32 commitment,, bytes32 nullifier) =
+            abi.decode(getDepositCommitmentHash(newLeafIndex, 1 ether), (bytes32, bytes32, bytes32));
+        bytes32[] memory pushedCommitments = new bytes32[](0);
 
         address[] memory accounts = deployAndAssertCore(alice, commitment);
 
         commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
-
     }
 
     // function test_double_deposit() external {
@@ -96,7 +92,7 @@ contract CoreTest is SharedHarness {
     //     bytes32[] memory pushedCommitments = new bytes32[](0) ;
 
     //     address[] memory accounts = deployAndAssertCore(alice, commitment);
-        
+
     //     commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
 
     //     depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);

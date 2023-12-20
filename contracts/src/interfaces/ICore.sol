@@ -2,7 +2,6 @@
 pragma solidity =0.8.20;
 
 interface ICore {
-
     // function getPendingAccount(bytes32 commitment, uint256 nonce) external returns (bytes32);
 
     function getPendingCommitment(address account) external returns (bytes32);

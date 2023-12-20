@@ -12,7 +12,6 @@ import {BalanceAccount} from "@main/BalanceAccount.sol";
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 
 contract SharedHarness is Test {
-
     string mnemonic = "test test test test test test test test test test test junk";
     uint256 deployerPrivateKey = vm.deriveKey(mnemonic, "m/44'/60'/0'/0/", 1); //  address = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
 
@@ -26,7 +25,7 @@ contract SharedHarness is Test {
     Core core;
 
     function setUp() public virtual {
-        startHoax(deployer,  1 ether);
+        startHoax(deployer, 1 ether);
 
         vm.label(deployer, "Deployer");
 
@@ -37,25 +36,20 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
-    function deployAndAssertCore(address user, bytes32 commitment)
-        internal
-        returns (address[] memory accounts)
-    {
+    function deployAndAssertCore(address user, bytes32 commitment) internal returns (address[] memory accounts) {
         vm.startPrank(user);
 
         accounts = core.initiate_1stPhase_Account(commitment);
 
-        assertEq( core.getPendingAccount(commitment, 0), accounts[0]);
-        assertEq( core.getPendingAccount(commitment, 1), accounts[1]);
-        assertEq( core.getPendingAccount(commitment, 2), accounts[2]);
-        assertEq( core.getPendingAccount(commitment, 3), accounts[3]);
+        assertEq(core.getPendingAccount(commitment, 0), accounts[0]);
+        assertEq(core.getPendingAccount(commitment, 1), accounts[1]);
+        assertEq(core.getPendingAccount(commitment, 2), accounts[2]);
+        assertEq(core.getPendingAccount(commitment, 3), accounts[3]);
 
         vm.stopPrank();
     }
 
-    function assertAccount(address user, address account, bytes32 commitment,uint256 nonce, uint256 amount)
-        internal
-    {
+    function assertAccount(address user, address account, bytes32 commitment, uint256 nonce, uint256 amount) internal {
         vm.startPrank(user);
 
         IAccount balanceAccount = IAccount(account);
@@ -75,51 +69,52 @@ contract SharedHarness is Test {
     {
         startHoax(user, amount);
 
-        assertEq( core.getPendingAccount(commitment, nonce), account);
-        assertEq( core.getPendingCommitment(account), commitment);
+        assertEq(core.getPendingAccount(commitment, nonce), account);
+        assertEq(core.getPendingCommitment(account), commitment);
 
         uint256 prePendingCommittedAmount = core.getPendingCommittedAmount(account);
         uint256 preOwnerCommittedAmount = core.getOwnerCommittedAmount(user);
 
         returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
-        assertEq( returningCommitment, commitment);
+        assertEq(returningCommitment, commitment);
 
-        assertEq( core.getPendingAccount(returningCommitment, nonce), address(0));
+        assertEq(core.getPendingAccount(returningCommitment, nonce), address(0));
 
-        assertEq( core.getPendingCommitment(account), returningCommitment);
-        assertEq( core.getPendingCommittedAmount(account), prePendingCommittedAmount + amount);
+        assertEq(core.getPendingCommitment(account), returningCommitment);
+        assertEq(core.getPendingCommittedAmount(account), prePendingCommittedAmount + amount);
 
-        assertEq( core.getOwnerCommitment(user), returningCommitment);
-        assertEq( core.getOwnerCommittedAmount(user), preOwnerCommittedAmount + amount);
-
-       
+        assertEq(core.getOwnerCommitment(user), returningCommitment);
+        assertEq(core.getOwnerCommittedAmount(user), preOwnerCommittedAmount + amount);
 
         vm.stopPrank();
     }
 
-    function clearAndAssertCore(address user, address account, address to, uint256 amount)
-        internal
-    {
+    function clearAndAssertCore(address user, address account, address to, uint256 amount) internal {
         vm.startPrank(user);
 
         assertTrue(core.getPendingCommitment(account) != bytes32(0));
-        assertTrue(core.getPendingCommittedAmount(account) != 0 );
+        assertTrue(core.getPendingCommittedAmount(account) != 0);
 
         uint256 preClearToBalance = to.balance;
 
         IAccount balanceAccount = IAccount(account);
         balanceAccount.clear_commitment(payable(to));
 
-        assertEq( core.getPendingCommitment(account), bytes32(0));
-        assertEq( core.getPendingCommittedAmount(account), 0);
+        assertEq(core.getPendingCommitment(account), bytes32(0));
+        assertEq(core.getPendingCommittedAmount(account), 0);
         assertEq(to.balance - preClearToBalance, amount);
 
         vm.stopPrank();
     }
 
-    function depositAndAssertCore(address user, uint256 newLeafIndex, bytes32 nullifier, bytes32 commitment, uint256 amount,  bytes32[] memory pushedCommitments)
-        internal
-    {
+    function depositAndAssertCore(
+        address user,
+        uint256 newLeafIndex,
+        bytes32 nullifier,
+        bytes32 commitment,
+        uint256 amount,
+        bytes32[] memory pushedCommitments
+    ) internal {
         vm.startPrank(user);
 
         Core.Proof memory depositProof;
@@ -138,13 +133,14 @@ contract SharedHarness is Test {
                 (Core.Proof, bytes32)
             );
         }
-        
+
         //todo: assert emit
         core.deposit(depositProof, newRoot);
 
         {
             // assert tree root and elements are correct
-            (bytes32 preDepositRoot, uint256 elements, bytes32 postDepositRoot) = getJsTreeAssertions(pushedCommitments, commitment);
+            (bytes32 preDepositRoot, uint256 elements, bytes32 postDepositRoot) =
+                getJsTreeAssertions(pushedCommitments, commitment);
             assertEq(preDepositRoot, core.roots(newLeafIndex));
             assertEq(elements, core.nextIndex());
             assertEq(postDepositRoot, core.roots(newLeafIndex + 1));
@@ -200,5 +196,4 @@ contract SharedHarness is Test {
         bytes memory result = vm.ffi(inputs);
         (root_before_commitment, height, root_after_commitment) = abi.decode(result, (bytes32, uint256, bytes32));
     }
-
 }

@@ -93,9 +93,8 @@ contract SortedListTest is Test {
 
         vm.expectRevert(bytes("SortedList: k must be > than list size"));
         list.getTop(2);
-        
-        vm.stopPrank();
 
+        vm.stopPrank();
     }
 
     function test_getBottom() external {

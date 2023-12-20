@@ -71,7 +71,12 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         uint256[2] c;
     }
 
-    constructor(IDepositVerifier _depositVerifier, uint256 _merkleTreeHeight, uint256 _denomination, uint256 _paymentNumber) SortedList() {
+    constructor(
+        IDepositVerifier _depositVerifier,
+        uint256 _merkleTreeHeight,
+        uint256 _denomination,
+        uint256 _paymentNumber
+    ) SortedList() {
         require(_merkleTreeHeight > 0, "Core: Levels should be greater than zero");
         require(_merkleTreeHeight < 32, "Core: Levels should be less than 32");
 
@@ -109,8 +114,8 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
             require(getPendingAccount[commitment][i] == address(0), "Core: Account Already Created");
 
-             // TODO : do some optimization to query balanceAccount address? like mapping address to getPendingAccount
-             // TODO : like getAccountTOCommit(commitment)
+            // TODO : do some optimization to query balanceAccount address? like mapping address to getPendingAccount
+            // TODO : like getAccountTOCommit(commitment)
             getPendingAccount[commitment][i] = account;
 
             DepositData storage depositData = pendingDeposit[account];
@@ -130,11 +135,13 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     // 2) withdraw
 
     // call from child contract
-    function commit_2ndPhase_Callback(address caller, address account, bytes32 commitment, uint256 nonce, uint256 amountIn)
-        external
-        payable
-        override
-    {
+    function commit_2ndPhase_Callback(
+        address caller,
+        address account,
+        bytes32 commitment,
+        uint256 nonce,
+        uint256 amountIn
+    ) external payable override {
         require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
         // ??
         require(commitment != bytes32(0), "Core: Invalid commitment");
@@ -155,7 +162,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         // pendingDeposit[caller] = commitment;
 
         depositData.committedAmount += amountIn;
-        ownerToDeposit[caller].commitment =  commitment;
+        ownerToDeposit[caller].commitment = commitment;
         ownerToDeposit[caller].committedAmount += amountIn;
 
         // ownerToDeposit[caller] = depositData;
@@ -186,10 +193,9 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     }
 
     /**
-    * @dev let users update the current merkle root by providing a proof that they added `ownerToDeposit[msg.sender]` to the current merkle tree root `roots[currentRootIndex]` and verifying it onchain
-    */
-    function deposit( Proof calldata _proof, bytes32 newRoot) external {
-
+     * @dev let users update the current merkle root by providing a proof that they added `ownerToDeposit[msg.sender]` to the current merkle tree root `roots[currentRootIndex]` and verifying it onchain
+     */
+    function deposit(Proof calldata _proof, bytes32 newRoot) external {
         DepositData memory depositData = ownerToDeposit[msg.sender];
         bytes32 _pendingDeposit = depositData.commitment;
         uint256 _committedAmount = depositData.committedAmount;
@@ -199,19 +205,14 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
         uint256 _currentRootIndex = currentRootIndex;
 
-        // fix denomination 
+        // fix denomination
         // TODO use from pending commitment AND _removeAccount()
         require(
             depositVerifier.verifyProof(
                 _proof.a,
                 _proof.b,
                 _proof.c,
-                [
-                    uint256(roots[_currentRootIndex]),
-                    uint256(_pendingDeposit),
-                    _committedAmount,
-                    uint256(newRoot)
-                ]
+                [uint256(roots[_currentRootIndex]), uint256(_pendingDeposit), _committedAmount, uint256(newRoot)]
             ),
             "Core: Invalid deposit proof"
         );
@@ -228,7 +229,6 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
         nextIndex += 1;
         emit Insert(_pendingDeposit, _nextIndex, block.timestamp);
-
     }
 
     function getPendingCommitment(address account) external view returns (bytes32) {
@@ -246,7 +246,6 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     function getOwnerCommittedAmount(address owner) external view returns (uint256) {
         return ownerToDeposit[owner].committedAmount;
     }
-
 
     // get
     // 1) stat (loop)
