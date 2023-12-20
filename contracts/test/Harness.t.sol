@@ -95,6 +95,9 @@ contract SharedHarness is Test {
         assertTrue(core.getPendingCommitment(account) != bytes32(0));
         assertTrue(core.getPendingCommittedAmount(account) != 0);
 
+        assertTrue(core.getOwnerCommitment(user) != bytes32(0));
+        assertTrue(core.getOwnerCommittedAmount(user) != 0);
+
         uint256 preClearToBalance = to.balance;
 
         IAccount balanceAccount = IAccount(account);
@@ -102,6 +105,10 @@ contract SharedHarness is Test {
 
         assertEq(core.getPendingCommitment(account), bytes32(0));
         assertEq(core.getPendingCommittedAmount(account), 0);
+
+        assertEq(core.getOwnerCommitment(user), bytes32(0));
+        assertEq(core.getOwnerCommittedAmount(user), 0);
+
         assertEq(to.balance - preClearToBalance, amount);
 
         vm.stopPrank();
