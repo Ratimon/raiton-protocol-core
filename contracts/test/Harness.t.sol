@@ -124,9 +124,11 @@ contract SharedHarness is Test {
     ) internal {
         vm.startPrank(user);
 
+        assertTrue(core.getOwnerCommitment(user) != bytes32(0));
+        assertTrue(core.getOwnerCommittedAmount(user) != 0);
+
         Core.Proof memory depositProof;
         bytes32 newRoot;
-
         {
             (depositProof, newRoot) = abi.decode(
                 getDepositProve(
@@ -143,6 +145,9 @@ contract SharedHarness is Test {
 
         //todo: assert emit
         core.deposit(depositProof, newRoot);
+
+        assertEq(core.getOwnerCommitment(user), bytes32(0));
+        assertEq(core.getOwnerCommittedAmount(user), 0);
 
         {
             // assert tree root and elements are correct
