@@ -43,8 +43,8 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     mapping(bytes32 => mapping(uint256 => address)) public getPendingAccount;
 
     // TODO ?
-    mapping(address => DepositData) private pendingCommitment;
-    mapping(address => DepositData) public ownerToCommitment;
+    mapping(address => DepositData) private pendingDeposit;
+    mapping(address => DepositData) public ownerToDeposit;
 
     mapping(address => address) public accountToOracle;
 
@@ -95,7 +95,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     {
         require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
         require(commitment != bytes32(0), "Core: Invalid commitment");
-        // require(pendingCommitment[msg.sender].commitment == bytes32(0), "Core: Already Deployed");
+        // require(pendingDeposit[msg.sender].commitment == bytes32(0), "Core: Already Deployed");
 
         accounts = new address[](paymentNumber);
 
@@ -112,10 +112,10 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
              // TODO : like getAccountTOCommit(commitment)
             getPendingAccount[commitment][i] = account;
 
-            DepositData storage depositData = pendingCommitment[account];
+            DepositData storage depositData = pendingDeposit[account];
             depositData.commitment = commitment;
             depositData.account = account;
-            // pendingCommitment[msg.sender] = DepositData({commitment: commitment, commitedAmount: 0});
+            // pendingDeposit[msg.sender] = DepositData({commitment: commitment, commitedAmount: 0});
 
             accounts[i] = account;
 
@@ -138,7 +138,7 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         // ??
         require(commitment != bytes32(0), "Core: Invalid commitment");
 
-        DepositData storage depositData = pendingCommitment[account];
+        DepositData storage depositData = pendingDeposit[account];
         //TODO check again
         require(depositData.commitment == commitment, "Core: Wrong Commitment or Account");
         // still needed to prevent redundant hash from the same sender
@@ -151,10 +151,10 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), commitment, nonce);
         delete getPendingAccount[commitment][nonce];
-        // pendingCommitment[caller] = commitment;
+        // pendingDeposit[caller] = commitment;
 
         depositData.committedAmount += amountIn;
-        ownerToCommitment[caller] = depositData;
+        ownerToDeposit[caller] = depositData;
 
         // TODO Change to updateAcccount and test _addAccount(,0) and getTop for SortedList
         _addAccount(account, amountIn);
@@ -163,35 +163,35 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
     }
 
     function clear_commitment_Callback(address caller, address account, uint256 nonce) external override {
-        DepositData memory depositData = pendingCommitment[account];
-        bytes32 _pendingCommitment = depositData.commitment;
-        require(_pendingCommitment != bytes32(0), "Core: Not Commited Yet");
+        DepositData memory depositData = pendingDeposit[account];
+        bytes32 _pendingDeposit = depositData.commitment;
+        require(_pendingDeposit != bytes32(0), "Core: Not Commited Yet");
         require(depositData.committedAmount != 0, "Core: Not Amount to Clear");
         require(depositData.account == account, "Core: Wrong Account");
 
-        CallbackValidation.verifyCallback(address(this), _pendingCommitment, nonce);
+        CallbackValidation.verifyCallback(address(this), _pendingDeposit, nonce);
 
-        delete pendingCommitment[account].commitment;
-        delete pendingCommitment[account].committedAmount;
-        delete ownerToCommitment[caller].commitment;
-        delete ownerToCommitment[caller].committedAmount;
+        delete pendingDeposit[account].commitment;
+        delete pendingDeposit[account].committedAmount;
+        delete ownerToDeposit[caller].commitment;
+        delete ownerToDeposit[caller].committedAmount;
 
         _removeAccount(account);
 
-        emit Clear(_pendingCommitment, account, block.timestamp);
+        emit Clear(_pendingDeposit, account, block.timestamp);
     }
 
     /**
-    * @dev let users update the current merkle root by providing a proof that proves they added `ownerToCommitment[msg.sender]` to the current merkle tree root `roots[currentRootIndex]` and verifying it onchain
+    * @dev let users update the current merkle root by providing a proof that they added `ownerToDeposit[msg.sender]` to the current merkle tree root `roots[currentRootIndex]` and verifying it onchain
     */
     function deposit( Proof calldata _proof, bytes32 newRoot) external {
 
-        DepositData memory depositData = ownerToCommitment[msg.sender];
-        bytes32 _pendingCommitment = depositData.commitment;
-        uint256 _commitedAmount = depositData.committedAmount;
+        DepositData memory depositData = ownerToDeposit[msg.sender];
+        bytes32 _pendingDeposit = depositData.commitment;
+        uint256 _committedAmount = depositData.committedAmount;
 
-        require(_pendingCommitment != bytes32(0), "Core: Not Commited Yet");
-        require(_commitedAmount == denomination, "Core: Amount Commited Not Enough");
+        require(_pendingDeposit != bytes32(0), "Core: Not Commited Yet");
+        require(_committedAmount == denomination, "Core: Amount Commited Not Enough");
 
         uint256 _currentRootIndex = currentRootIndex;
 
@@ -204,16 +204,16 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
                 _proof.c,
                 [
                     uint256(roots[_currentRootIndex]),
-                    uint256(_pendingCommitment),
-                    denomination,
+                    uint256(_pendingDeposit),
+                    _committedAmount,
                     uint256(newRoot)
                 ]
             ),
             "Core: Invalid deposit proof"
         );
 
-        delete pendingCommitment[depositData.account];
-        delete ownerToCommitment[msg.sender];
+        delete pendingDeposit[depositData.account];
+        delete ownerToDeposit[msg.sender];
 
         uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
 
@@ -223,16 +223,16 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
         uint256 _nextIndex = nextIndex;
 
         nextIndex += 1;
-        emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
+        emit Insert(_pendingDeposit, _nextIndex, block.timestamp);
 
     }
 
-    function getCommitment(address account) external view returns (bytes32) {
-        return pendingCommitment[account].commitment;
+    function getPendingCommitment(address account) external view returns (bytes32) {
+        return pendingDeposit[account].commitment;
     }
 
-    function getCommittedAmount(address account) external view returns (uint256) {
-        return pendingCommitment[account].committedAmount;
+    function getPendingCommittedAmount(address account) external view returns (uint256) {
+        return pendingDeposit[account].committedAmount;
     }
 
 

@@ -76,15 +76,15 @@ contract SharedHarness is Test {
         startHoax(user, amount);
 
         assertEq( core.getPendingAccount(commitment, nonce), account);
-        assertEq( core.getCommitment(account), commitment);
-        uint256 preCoreBalanceState = core.getCommittedAmount(account);
+        assertEq( core.getPendingCommitment(account), commitment);
+        uint256 preCoreBalanceState = core.getPendingCommittedAmount(account);
 
         returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
         assertEq( returningCommitment, commitment);
 
         assertEq( core.getPendingAccount(returningCommitment, nonce), address(0));
-        assertEq( core.getCommitment(account), returningCommitment);
-        assertEq( core.getCommittedAmount(account), preCoreBalanceState + amount);
+        assertEq( core.getPendingCommitment(account), returningCommitment);
+        assertEq( core.getPendingCommittedAmount(account), preCoreBalanceState + amount);
 
         vm.stopPrank();
     }
@@ -94,16 +94,16 @@ contract SharedHarness is Test {
     {
         vm.startPrank(user);
 
-        assertTrue(core.getCommitment(account) != bytes32(0));
-        assertTrue(core.getCommittedAmount(account) != 0 );
+        assertTrue(core.getPendingCommitment(account) != bytes32(0));
+        assertTrue(core.getPendingCommittedAmount(account) != 0 );
 
         uint256 preClearToBalance = to.balance;
 
         IAccount balanceAccount = IAccount(account);
         balanceAccount.clear_commitment(payable(to));
 
-        assertEq( core.getCommitment(account), bytes32(0));
-        assertEq( core.getCommittedAmount(account), 0);
+        assertEq( core.getPendingCommitment(account), bytes32(0));
+        assertEq( core.getPendingCommittedAmount(account), 0);
         assertEq(to.balance - preClearToBalance, amount);
 
         vm.stopPrank();

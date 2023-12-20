@@ -11,11 +11,9 @@ interface ICore {
 
     function getPendingAccount(bytes32 commitment, uint256 nonce) external returns (bytes32);
 
-    function pendingCommitment(address account) external returns (bytes32);
+    function getPendingCommitment(address account) external returns (bytes32);
 
-    function getCommitment(address account) external returns (bytes32);
-
-    function getCommittedAmount(address account) external view returns (uint256);
+    function getPendingCommittedAmount(address account) external view returns (uint256);
 
     function stats() external view returns (uint256 averageLiquidityCoverageRatio, uint256 totalAccountTurnOver);
 }
