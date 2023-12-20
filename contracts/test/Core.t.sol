@@ -63,10 +63,10 @@ contract CoreTest is SharedHarness {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
         (bytes32 commitment, , ) = abi.decode(getDepositCommitmentHash(newLeafIndex,denomination), (bytes32, bytes32, bytes32));
-        
-        address[] memory accounts = deployAndAssertCore(alice, commitment);
 
+        address[] memory accounts = deployAndAssertCore(alice, commitment);
         commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
+
         clearAndAssertCore(alice, accounts[0], bob, denomination);
 
         vm.expectRevert(bytes("SortedList: k must be > than list size"));
@@ -75,49 +75,16 @@ contract CoreTest is SharedHarness {
     }
 
     function test_deposit() external {
-        startHoax(alice,  1 ether);
 
         uint256 newLeafIndex = 0;
+        uint256 denomination = 1 ether;
         (bytes32 commitment, , bytes32 nullifier) = abi.decode(getDepositCommitmentHash(newLeafIndex, 1 ether), (bytes32, bytes32, bytes32));
         bytes32[] memory pushedCommitments = new bytes32[](0) ;
 
-        uint256 preDepositUserBalance = alice.balance;
-
-        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
-        IAccount account_1 = IAccount(accounts[0]);
-        account_1.commit_2ndPhase{value: 1 ether}();
-
-        Core.Proof memory depositProof;
-        bytes32 newRoot;
-
-        {
-            (depositProof, newRoot) = abi.decode(
-                getDepositProve(
-                    newLeafIndex,
-                    core.roots(core.currentRootIndex()),
-                    1 ether, //amount
-                    nullifier, //secret
-                    commitment,
-                    pushedCommitments
-                ),
-                (Core.Proof, bytes32)
-            );
-        }
-
+        address[] memory accounts = deployAndAssertCore(alice, commitment);
         
-        //todo: assert emit
-        core.deposit(depositProof, newRoot);
+        commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
+        depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
 
-        assertEq(preDepositUserBalance - alice.balance , 1 ether);
-
-        {
-            // assert tree root and elements are correct
-            (bytes32 preDepositRoot, uint256 elements, bytes32 postDepositRoot) = getJsTreeAssertions(pushedCommitments, commitment);
-            assertEq(preDepositRoot, core.roots(newLeafIndex));
-            assertEq(elements, core.nextIndex());
-            assertEq(postDepositRoot, core.roots(newLeafIndex + 1));
-        }
-
-        vm.stopPrank();
     }
 }

@@ -109,6 +109,42 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
+    function depositAndAssertCore(address user, uint256 newLeafIndex, bytes32 nullifier, bytes32 commitment, uint256 amount,  bytes32[] memory pushedCommitments)
+        internal
+    {
+        vm.startPrank(user);
+
+        Core.Proof memory depositProof;
+        bytes32 newRoot;
+
+        {
+            (depositProof, newRoot) = abi.decode(
+                getDepositProve(
+                    newLeafIndex,
+                    core.roots(core.currentRootIndex()),
+                    amount,
+                    nullifier, //secret
+                    commitment,
+                    pushedCommitments
+                ),
+                (Core.Proof, bytes32)
+            );
+        }
+        
+        //todo: assert emit
+        core.deposit(depositProof, newRoot);
+
+        {
+            // assert tree root and elements are correct
+            (bytes32 preDepositRoot, uint256 elements, bytes32 postDepositRoot) = getJsTreeAssertions(pushedCommitments, commitment);
+            assertEq(preDepositRoot, core.roots(newLeafIndex));
+            assertEq(elements, core.nextIndex());
+            assertEq(postDepositRoot, core.roots(newLeafIndex + 1));
+        }
+
+        vm.stopPrank();
+    }
+
     function getDepositCommitmentHash(uint256 leafIndex, uint256 denomination) internal returns (bytes memory) {
         string[] memory inputs = new string[](4);
         inputs[0] = "node";
