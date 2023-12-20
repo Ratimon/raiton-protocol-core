@@ -43,9 +43,12 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     // TODO ? adding new struct of Accountkey
     mapping(bytes32 => mapping(uint256 => address)) public getPendingAccount;
 
-    // TODO ?
+    // Deposit Side:
     mapping(address => DepositData) private pendingDeposit;
     mapping(address => DepositData) public ownerToDeposit;
+
+    // Withdraw Side:
+    mapping(bytes32 => WithdrawData) private nullifierHashToWithdraw;
 
     mapping(address => address) public accountToOracle;
 
@@ -59,10 +62,17 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
 
     // TODO Add isCommitSettle?
+    // TODO change committedAmount to just Counter
     struct DepositData {
         bytes32 commitment;
         uint256 committedAmount;
         address account;
+    }
+
+    // TODO change withdrawnAmount to just Counter
+    struct WithdrawData {
+        uint256 withdrawnAmount;
+        bool isNullified;
     }
 
     struct Proof {
@@ -151,7 +161,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         require(depositData.commitment == commitment, "Core: Wrong Commitment or Account");
         // still needed to prevent redundant hash from the same sender
         //  TODO another mechanism to prevent from redundant deposit
-        require(depositData.committedAmount < denomination, "Core: Amount Commited Already exceeded");
+        require(depositData.committedAmount < denomination, "Core: Commited Amount already exceeded");
         require(depositData.account == account, "Core: Wrong Account");
 
         // only callable by child account(  ie deployer must be factory - address(this))
@@ -207,6 +217,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
         // fix denomination
         // TODO use from pending commitment AND _removeAccount()
+        // TODO revisit  hash: Poseidon(nullifier, 0, denomination) : whether we should delete 'denomination'
         require(
             depositVerifier.verifyProof(
                 _proof.a,
@@ -231,6 +242,21 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         emit Insert(_pendingDeposit, _nextIndex, block.timestamp);
     }
 
+    function withdraw(
+        bytes32 _nullifierHash
+    ) external {
+
+        WithdrawData storage withdrawData = nullifierHashToWithdraw[_nullifierHash];
+
+        require(!withdrawData.isNullified, "Core: Not Amount to Clear");
+        require(withdrawData.withdrawnAmount < denomination, "Core: Withdrawn Amount already exceeded");
+
+        withdrawData.isNullified = true;
+        withdrawData.withdrawnAmount += denomination /paymentNumber;
+        // TODO if only final full withdraw
+       
+    }
+
     function getPendingCommitment(address account) external view returns (bytes32) {
         return pendingDeposit[account].commitment;
     }
@@ -246,6 +272,19 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     function getOwnerCommittedAmount(address owner) external view returns (uint256) {
         return ownerToDeposit[owner].committedAmount;
     }
+
+     function isKnownRoot(bytes32 _root) public view returns (bool) {
+        if (_root == 0) return false;
+
+        uint256 i = currentRootIndex;
+        do {
+            if (_root == roots[i]) return true;
+            if (i == 0) i = ROOT_HISTORY_SIZE;
+            --i;
+        } while (i != currentRootIndex);
+        return false;
+    }
+
 
     // get
     // 1) stat (loop)
