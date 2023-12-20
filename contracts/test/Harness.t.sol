@@ -92,13 +92,6 @@ contract SharedHarness is Test {
         assertEq( core.getOwnerCommitment(user), returningCommitment);
         assertEq( core.getOwnerCommittedAmount(user), preOwnerCommittedAmount + amount);
 
-        console2.log('core.getOwnerCommittedAmount(user)', core.getOwnerCommittedAmount(user));
-        console2.log('preOwnerCommittedAmount', preOwnerCommittedAmount);
-        console2.log('amount', amount);
-
-
-        // assertEq( core.getOwnerCommittedAmount(user), core.getPendingCommittedAmount(account));
-
        
 
         vm.stopPrank();

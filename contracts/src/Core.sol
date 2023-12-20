@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {console} from "@forge-std/console.sol";
-
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {ICore} from "@main/interfaces/ICore.sol";
@@ -161,10 +159,6 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         ownerToDeposit[caller].committedAmount += amountIn;
 
         // ownerToDeposit[caller] = depositData;
-
-        console.log("pendingDeposit[account].committedAmount", pendingDeposit[account].committedAmount);
-        console.log("ownerToDeposit[caller].committedAmount", ownerToDeposit[caller].committedAmount);
-
 
         // TODO Change to updateAcccount and test _addAccount(,0) and getTop for SortedList
         _addAccount(account, amountIn);
