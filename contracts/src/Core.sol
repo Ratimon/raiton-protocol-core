@@ -3,6 +3,7 @@ pragma solidity =0.8.20;
 
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
+import {ICore} from "@main/interfaces/ICore.sol";
 import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
 import {IPoolsCounterBalancer} from "@main/interfaces/IPoolsCounterBalancer.sol";
 
@@ -11,7 +12,7 @@ import {AccountDeployer} from "@main/AccountDeployer.sol";
 
 import {SortedList} from "@main/utils/SortedList.sol";
 
-contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateCall {
+contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateCall {
     uint256 constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant ROOT_HISTORY_SIZE = 30;
 
@@ -233,6 +234,14 @@ contract Core is IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateC
 
     function getPendingCommittedAmount(address account) external view returns (uint256) {
         return pendingDeposit[account].committedAmount;
+    }
+
+    function getOwnerCommitment(address caller) external view returns (bytes32) {
+        return ownerToDeposit[caller].commitment;
+    }
+
+    function getOwnerCommittedAmount(address caller) external view returns (uint256) {
+        return ownerToDeposit[caller].committedAmount;
     }
 
 
