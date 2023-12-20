@@ -4,6 +4,7 @@ out = "out"
 libs = ["lib"]
 ffi = true
 solc_version = '0.8.20'
+evm_version = 'paris'
 
 [fmt]
 ignore = ['generated/**/*.sol', "lib/**/*.sol"]
