@@ -223,6 +223,69 @@ contract SharedHarness is Test {
         return result;
     }
 
+    function getPartialWithdrawProve(
+        uint256 leafIndex,
+        uint256 changeLeafIndex,
+        bytes32 nullifier,
+        bytes32 changeNullifier,
+        bytes32 nullifierHash,
+        bytes32 changeCommitmentHash,
+        uint256 denomination,
+        address recipient,
+        uint256 amount,
+        address relayer,
+        uint256 fee,
+        bytes32[] memory pushedCommitments
+    )
+        private
+        returns (bytes memory)
+    {
+        string[] memory inputs = new string[](15);
+        inputs[0] = "node";
+        inputs[1] = "test/utils/getPartialWithdrawProve.cjs";
+        inputs[2] = "20";
+        inputs[3] = vm.toString(leafIndex);
+        inputs[4] = vm.toString(changeLeafIndex);
+        inputs[5] = vm.toString(nullifier);
+        inputs[6] = vm.toString(changeNullifier);
+        inputs[7] = vm.toString(nullifierHash);
+        inputs[8] = vm.toString(changeCommitmentHash);
+        inputs[9] = vm.toString(denomination);
+        inputs[10] = vm.toString(recipient);
+        inputs[11] = vm.toString(amount);
+        inputs[12] = vm.toString(relayer);
+        inputs[13] = vm.toString(fee);
+        inputs[14] = vm.toString(abi.encode(pushedCommitments));
+
+        bytes memory result = vm.ffi(inputs);
+        return result;
+    }
+
+    // function getPartialWithdrawProve(GetPartialWithdrawProveStruct memory getPartialWithdrawProveStruct)
+    // private
+    // returns (bytes memory)
+    // {
+    //     string[] memory inputs = new string[](15);
+    //     inputs[0] = "node";
+    //     inputs[1] = "ffi_helpers/getPartialWithdrawProve.js";
+    //     inputs[2] = "20";
+    //     inputs[3] = vm.toString(getPartialWithdrawProveStruct.leafIndex);
+    //     inputs[4] = vm.toString(getPartialWithdrawProveStruct.changeLeafIndex);
+    //     inputs[5] = vm.toString(getPartialWithdrawProveStruct.nullifier);
+    //     inputs[6] = vm.toString(getPartialWithdrawProveStruct.changeNullifier);
+    //     inputs[7] = vm.toString(getPartialWithdrawProveStruct.nullifierHash);
+    //     inputs[8] = vm.toString(getPartialWithdrawProveStruct.changeCommitmentHash);
+    //     inputs[9] = vm.toString(getPartialWithdrawProveStruct.denomination);
+    //     inputs[10] = vm.toString(getPartialWithdrawProveStruct.recipient);
+    //     inputs[11] = vm.toString(getPartialWithdrawProveStruct.amount);
+    //     inputs[12] = vm.toString(getPartialWithdrawProveStruct.relayer);
+    //     inputs[13] = vm.toString(getPartialWithdrawProveStruct.fee);
+    //     inputs[14] = vm.toString(abi.encode(getPartialWithdrawProveStruct.pushedCommitments));
+
+    //     bytes memory result = vm.ffi(inputs);
+    //     return result;
+    // }
+
     function getJsTreeAssertions(bytes32[] memory pushedCommitments, bytes32 newCommitment)
         internal
         returns (bytes32 root_before_commitment, uint256 height, bytes32 root_after_commitment)
