@@ -21,6 +21,8 @@ contract SharedHarness is Test {
     address carol = makeAddr("Carol");
     address dave = makeAddr("Dave");
 
+    address relayer_signer = makeAddr("Relayer");
+
     IDepositVerifier depositVerifier;
     Core core;
 

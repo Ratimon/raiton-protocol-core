@@ -84,4 +84,31 @@ contract CoreTest is SharedHarness {
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
     }
 
+    function test_withdraw() external {
+
+        uint256 newLeafIndex = 0;
+        uint256 denomination = 1 ether;
+
+        //TODO refactor to harness
+        (bytes32 commitment, bytes32 nullifierHash, bytes32 nullifier) =
+            abi.decode(getDepositCommitmentHash(newLeafIndex, 1 ether), (bytes32, bytes32, bytes32));
+        bytes32[] memory pushedCommitments = new bytes32[](0);
+
+        address[] memory accounts = deployAndAssertCore(alice, commitment);
+
+        commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
+        depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
+
+        assertEq(core.getWithdrawnAmount(nullifierHash), 0);
+        assertEq(core.getIsNullified(nullifierHash), false);
+
+
+        core.withdraw( nullifierHash);
+
+        assertEq(core.getWithdrawnAmount(nullifierHash), 0.25 ether);
+        assertEq(core.getIsNullified(nullifierHash), false);
+
+
+    }
+
 }

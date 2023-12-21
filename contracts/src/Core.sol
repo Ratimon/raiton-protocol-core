@@ -243,12 +243,12 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     }
 
     function withdraw(
-        Proof calldata _proof,
-        bytes32 _root,
+        // Proof calldata _proof,
+        // bytes32 _root,
         bytes32 _nullifierHash
     ) external {
 
-        require(isKnownRoot(_root), "Core: No merkle root found"); // Make sure to use a recent one
+        // require(isKnownRoot(_root), "Core: No merkle root found"); // Make sure to use a recent one
 
         WithdrawData storage withdrawData = nullifierHashToWithdraw[_nullifierHash];
 
@@ -257,8 +257,11 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
          // TODO if only final full withdraw
 
-        withdrawData.isNullified = true;
+
         withdrawData.withdrawnAmount += denomination /paymentNumber;
+
+        if(withdrawData.withdrawnAmount  == denomination)
+            withdrawData.isNullified = true;
        
     }
 
@@ -277,6 +280,14 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
     function getOwnerCommittedAmount(address owner) external view returns (uint256) {
         return ownerToDeposit[owner].committedAmount;
+    }
+
+    function getWithdrawnAmount(bytes32 nullifierHash) external view returns (uint256) {
+        return nullifierHashToWithdraw[nullifierHash].withdrawnAmount;
+    }
+
+    function getIsNullified(bytes32 nullifierHash) external view returns (bool){
+        return nullifierHashToWithdraw[nullifierHash].isNullified;
     }
 
      function isKnownRoot(bytes32 _root) public view returns (bool) {

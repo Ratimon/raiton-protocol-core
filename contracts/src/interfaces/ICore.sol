@@ -12,5 +12,9 @@ interface ICore {
 
     function getOwnerCommittedAmount(address account) external view returns (uint256);
 
+    function getWithdrawnAmount(bytes32 nullifierHash) external view returns (uint256);
+
+    function getIsNullified(bytes32 nullifierHash) external view returns (bool);
+
     // function stats() external view returns (uint256 averageLiquidityCoverageRatio, uint256 totalAccountTurnOver);
 }
