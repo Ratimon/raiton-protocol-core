@@ -196,6 +196,33 @@ contract SharedHarness is Test {
         return result;
     }
 
+    function getFullWithdrawProve(
+        uint256 leafIndex,
+        bytes32 nullifier,
+        bytes32 nullifierHash,
+        address recipient,
+        uint256 amount,
+        address relayer,
+        uint256 fee,
+        bytes32[] memory pushedCommitments
+    ) internal returns (bytes memory) {
+        string[] memory inputs = new string[](11);
+        inputs[0] = "node";
+        inputs[1] = "test/utils/getFullWithdrawProve.cjs";
+        inputs[2] = "20";
+        inputs[3] = vm.toString(leafIndex);
+        inputs[4] = vm.toString(nullifier);
+        inputs[5] = vm.toString(nullifierHash);
+        inputs[6] = vm.toString(recipient);
+        inputs[7] = vm.toString(amount);
+        inputs[8] = vm.toString(relayer);
+        inputs[9] = vm.toString(fee);
+        inputs[10] = vm.toString(abi.encode(pushedCommitments));
+
+        bytes memory result = vm.ffi(inputs);
+        return result;
+    }
+
     function getJsTreeAssertions(bytes32[] memory pushedCommitments, bytes32 newCommitment)
         internal
         returns (bytes32 root_before_commitment, uint256 height, bytes32 root_after_commitment)
