@@ -5,13 +5,17 @@
   "scripts": {
     "test": "mocha",
     "snarkjs": "snarkjs",
-    "compile": "mkdir -p build && circom ./deposit.circom --r1cs --wasm --output build ",
     "phase_1": "snarkjs powersoftau new bn128 14 ./setup/pot14_0000.ptau -v",
     "contribute_1": "snarkjs powersoftau contribute ./setup/pot14_0000.ptau ./setup/pot14_0001.ptau --name=\"First contribution\" -v",
     "phase_2": "snarkjs powersoftau prepare phase2 ./setup/pot14_0001.ptau ./setup/pot14_final.ptau -v",
-    "key_gen_deposit": "snarkjs groth16 setup ./build/deposit.r1cs ./setup/pot14_final.ptau ./setup/deposit_circuit_final.zkey",
-    "key_export_deposit": "snarkjs zkey export verificationkey ./setup/deposit_circuit_final.zkey ./setup/deposit_verification_key.json",
-    "verifier_gen_deposit": "snarkjs zkey export solidityverifier ./setup/deposit_circuit_final.zkey build/DepositVerifier.sol"
+    "deposit:compile": "mkdir -p build && circom ./deposit.circom --r1cs --wasm --output build ",
+    "deposit:key_gen": "snarkjs groth16 setup ./build/deposit.r1cs ./setup/pot14_final.ptau ./setup/deposit_circuit_final.zkey",
+    "deposit:key_export": "snarkjs zkey export verificationkey ./setup/deposit_circuit_final.zkey ./setup/deposit_verification_key.json",
+    "deposit:verifier_gen": "snarkjs zkey export solidityverifier ./setup/deposit_circuit_final.zkey build/DepositVerifier.sol",
+    "partial_withdraw:compile": "mkdir -p build && circom ./partial_withdraw.circom --r1cs --wasm --output build ",
+    "partial_withdraw:key_gen": "snarkjs groth16 setup ./build/partial_withdraw.r1cs ./setup/pot14_final.ptau ./setup/partial_withdraw_circuit_final.zkey",
+    "partial_withdraw:key_export": "snarkjs zkey export verificationkey ./setup/partial_withdraw_circuit_final.zkey ./setup/partial_withdraw_verification_key.json",
+    "partial_withdraw:verifier_gen": "snarkjs zkey export solidityverifier ./setup/partial_withdraw_circuit_final.zkey build/PartialWithdrawVerifier.sol"
   },
   "devDependencies": {
     "circomlib": "^2.0.5",
