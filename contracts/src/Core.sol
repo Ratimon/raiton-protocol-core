@@ -243,19 +243,25 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     }
 
     function withdraw(
+        Proof calldata _proof,
+        bytes32 _root,
         bytes32 _nullifierHash
     ) external {
+
+        require(isKnownRoot(_root), "Core: No merkle root found"); // Make sure to use a recent one
 
         WithdrawData storage withdrawData = nullifierHashToWithdraw[_nullifierHash];
 
         require(!withdrawData.isNullified, "Core: Not Amount to Clear");
         require(withdrawData.withdrawnAmount < denomination, "Core: Withdrawn Amount already exceeded");
 
+         // TODO if only final full withdraw
+
         withdrawData.isNullified = true;
         withdrawData.withdrawnAmount += denomination /paymentNumber;
-        // TODO if only final full withdraw
        
     }
+
 
     function getPendingCommitment(address account) external view returns (bytes32) {
         return pendingDeposit[account].commitment;
