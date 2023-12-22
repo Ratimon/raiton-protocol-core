@@ -5,6 +5,7 @@ import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {ICore} from "@main/interfaces/ICore.sol";
 import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
+import {IPartialWithdrawVerifier} from "@main/interfaces/IPartialWithdrawVerifier.sol";
 import {IPoolsCounterBalancer} from "@main/interfaces/IPoolsCounterBalancer.sol";
 
 import {NoDelegateCall} from "@main/NoDelegateCall.sol";
@@ -20,6 +21,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     uint256 immutable levels;
 
     IDepositVerifier immutable depositVerifier;
+    IPartialWithdrawVerifier immutable partialWithdrawVerifier;
 
     // current index of the latest root
     uint128 public currentRootIndex;
@@ -83,6 +85,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
     constructor(
         IDepositVerifier _depositVerifier,
+        IPartialWithdrawVerifier _partialWithdrawVerifier,
         uint256 _merkleTreeHeight,
         uint256 _denomination,
         uint256 _paymentNumber
@@ -98,6 +101,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         denomination = _denomination;
         paymentNumber = _paymentNumber;
         depositVerifier = _depositVerifier;
+        partialWithdrawVerifier = _partialWithdrawVerifier;
     }
 
     // TODO annuity commit - low level commit

@@ -4,12 +4,15 @@ pragma solidity =0.8.20;
 import {Test, console2, stdError} from "@forge-std/Test.sol";
 
 import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
+import {IPartialWithdrawVerifier} from "@main/interfaces/IPartialWithdrawVerifier.sol";
 import {IAccount} from "@main/interfaces/IAccount.sol";
 
 import {Core} from "@main/Core.sol";
 import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
+import {Groth16Verifier as PartialWithdrawVerifier} from "@main/verifiers/PartialWithdrawVerifier.sol";
+
 
 contract SharedHarness is Test {
     string mnemonic = "test test test test test test test test test test test junk";
@@ -24,6 +27,7 @@ contract SharedHarness is Test {
     address relayer_signer = makeAddr("Relayer");
 
     IDepositVerifier depositVerifier;
+    IPartialWithdrawVerifier partialWithdrawVerifier;
     Core core;
 
     function setUp() public virtual {
@@ -32,7 +36,9 @@ contract SharedHarness is Test {
         vm.label(deployer, "Deployer");
 
         depositVerifier = IDepositVerifier(address(new DepositGroth16Verifier()));
-        core = new Core(depositVerifier, 20, 1 ether, 4);
+        partialWithdrawVerifier = IPartialWithdrawVerifier(address(new PartialWithdrawVerifier()));
+
+        core = new Core(depositVerifier, partialWithdrawVerifier, 20, 1 ether, 4);
         vm.label(address(core), "Core");
 
         vm.stopPrank();
@@ -261,30 +267,6 @@ contract SharedHarness is Test {
         return result;
     }
 
-    // function getPartialWithdrawProve(GetPartialWithdrawProveStruct memory getPartialWithdrawProveStruct)
-    // private
-    // returns (bytes memory)
-    // {
-    //     string[] memory inputs = new string[](15);
-    //     inputs[0] = "node";
-    //     inputs[1] = "ffi_helpers/getPartialWithdrawProve.js";
-    //     inputs[2] = "20";
-    //     inputs[3] = vm.toString(getPartialWithdrawProveStruct.leafIndex);
-    //     inputs[4] = vm.toString(getPartialWithdrawProveStruct.changeLeafIndex);
-    //     inputs[5] = vm.toString(getPartialWithdrawProveStruct.nullifier);
-    //     inputs[6] = vm.toString(getPartialWithdrawProveStruct.changeNullifier);
-    //     inputs[7] = vm.toString(getPartialWithdrawProveStruct.nullifierHash);
-    //     inputs[8] = vm.toString(getPartialWithdrawProveStruct.changeCommitmentHash);
-    //     inputs[9] = vm.toString(getPartialWithdrawProveStruct.denomination);
-    //     inputs[10] = vm.toString(getPartialWithdrawProveStruct.recipient);
-    //     inputs[11] = vm.toString(getPartialWithdrawProveStruct.amount);
-    //     inputs[12] = vm.toString(getPartialWithdrawProveStruct.relayer);
-    //     inputs[13] = vm.toString(getPartialWithdrawProveStruct.fee);
-    //     inputs[14] = vm.toString(abi.encode(getPartialWithdrawProveStruct.pushedCommitments));
-
-    //     bytes memory result = vm.ffi(inputs);
-    //     return result;
-    // }
 
     function getJsTreeAssertions(bytes32[] memory pushedCommitments, bytes32 newCommitment)
         internal
