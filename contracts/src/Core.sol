@@ -247,19 +247,43 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     }
 
     function withdraw(
-        // Proof calldata _proof,
-        // bytes32 _root,
-        bytes32 _nullifierHash
+        Proof calldata _proof,
+        bytes32 _root,
+        bytes32 _nullifierHash,
+        bytes32 _newCommitmentHash,
+        bytes32 _newRoot,
+        address payable _recipient,
+        address payable _relayer,
+        uint256 _fee
     ) external {
 
         // require(isKnownRoot(_root), "Core: No merkle root found"); // Make sure to use a recent one
 
         WithdrawData storage withdrawData = nullifierHashToWithdraw[_nullifierHash];
 
-        require(!withdrawData.isNullified, "Core: Not Amount to Clear");
+        require(!withdrawData.isNullified, "Core: Already ");
         require(withdrawData.withdrawnAmount < denomination, "Core: Withdrawn Amount already exceeded");
 
-         // TODO if only final full withdraw
+         // TODO if only final full withdraw ?
+         // TODO Add time constraint
+         require(
+            partialWithdrawVerifier.verifyProof(
+                _proof.a,
+                _proof.b,
+                _proof.c,
+                [
+                    uint256(_root),
+                    uint256(_nullifierHash),
+                    denomination/paymentNumber,
+                    uint256(_newCommitmentHash),
+                    uint256(_newRoot),
+                    uint256(uint160(address(_recipient))),
+                    uint256(uint160(address(_relayer))),
+                    _fee
+                ]
+            ),
+            "Invalid withdraw proof"
+        );
 
 
         withdrawData.withdrawnAmount += denomination /paymentNumber;

@@ -243,7 +243,7 @@ contract SharedHarness is Test {
         uint256 fee,
         bytes32[] memory pushedCommitments
     )
-        private
+        internal
         returns (bytes memory)
     {
         string[] memory inputs = new string[](15);
