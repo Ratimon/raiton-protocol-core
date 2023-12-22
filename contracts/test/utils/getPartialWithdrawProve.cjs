@@ -1,4 +1,4 @@
-const { MerkleTree } = require("./merkleTree.js");
+const { MerkleTree } = require("./merkleTree.cjs");
 const { ethers } = require("ethers");
 const {
   Contract,
@@ -36,11 +36,11 @@ class PoseidonHasher {
 async function prove(witness) {
   const wasmPath = path.join(
     __dirname,
-    "../build/partial_withdraw_js/partial_withdraw.wasm"
+    "../../../circuits/build/partial_withdraw_js/partial_withdraw.wasm"
   );
   const zkeyPath = path.join(
     __dirname,
-    "../build/partial_withdraw_circuit_final.zkey"
+    "../../../circuits/setup/partial_withdraw_circuit_final.zkey"
   );
 
   const { proof } = await groth16.fullProve(witness, wasmPath, zkeyPath);

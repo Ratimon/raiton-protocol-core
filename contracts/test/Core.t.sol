@@ -81,8 +81,7 @@ contract CoreTest is SharedHarness {
         commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
     }
-
-
+    
 
     function test_partial_withdraw() external {
 
@@ -99,12 +98,13 @@ contract CoreTest is SharedHarness {
         commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
 
+        
+        uint256 nextLeafIndex = 1;
         (bytes32 newCommitment, , bytes32 newNullifier) =
-        abi.decode(getDepositCommitmentHash(newLeafIndex, 1 ether), (bytes32, bytes32, bytes32));
+            abi.decode(getDepositCommitmentHash(nextLeafIndex, 0.75 ether), (bytes32, bytes32, bytes32));
 
-        uint256 leafIndex = 1;
         pushedCommitments = new bytes32[](1);
-        pushedCommitments[0] = newCommitment;
+        pushedCommitments[0] = commitment;
 
         Core.Proof memory partialWithdrawProof;
         bytes32 root;
@@ -112,27 +112,28 @@ contract CoreTest is SharedHarness {
         {
             (partialWithdrawProof, root, newRoot) = abi.decode(
                 getPartialWithdrawProve(
-                    leafIndex,
-                    newLeafIndex,
-                    nullifier, 
-                    newNullifier, // new nullifier
-                    nullifierHash,
-                    newCommitment, // new commitment
-                    denomination,
-                    alice,
-                    0.25 ether, // amount = denomination / payment number
-                    relayer_signer,
-                    0, // fee
-                    pushedCommitments
+                    GetPartialWithdrawProveStruct(
+                        newLeafIndex,
+                        nextLeafIndex,
+                        nullifier, 
+                        newNullifier, // new nullifier
+                        nullifierHash,
+                        newCommitment, // new commitment
+                        denomination,
+                        alice,
+                        0.25 ether, // amount = denomination / payment number
+                        relayer_signer,
+                        0, // fee
+                        pushedCommitments
+                    )
+
                 ),
                 (Core.Proof, bytes32, bytes32)
             );
         }
 
-
         assertEq(core.getWithdrawnAmount(nullifierHash), 0);
         assertEq(core.getIsNullified(nullifierHash), false);
-
 
         core.withdraw(
             partialWithdrawProof,

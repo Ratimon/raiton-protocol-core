@@ -229,19 +229,26 @@ contract SharedHarness is Test {
         return result;
     }
 
+    struct GetPartialWithdrawProveStruct {
+        uint256 leafIndex;
+        uint256 changeLeafIndex;
+        bytes32 nullifier;
+        bytes32 changeNullifier;
+        bytes32 nullifierHash;
+        bytes32 changeCommitmentHash;
+        uint256 denomination;
+        address recipient;
+        uint256 amount;
+        address relayer;
+        uint256 fee;
+        bytes32[] pushedCommitments;
+    }
+
+    // todo addinf @ notoce
+    // Remove local var error by putting all argument to struct
+
     function getPartialWithdrawProve(
-        uint256 leafIndex,
-        uint256 changeLeafIndex,
-        bytes32 nullifier,
-        bytes32 changeNullifier,
-        bytes32 nullifierHash,
-        bytes32 changeCommitmentHash,
-        uint256 denomination,
-        address recipient,
-        uint256 amount,
-        address relayer,
-        uint256 fee,
-        bytes32[] memory pushedCommitments
+        GetPartialWithdrawProveStruct memory getPartialWithdrawProveStruct
     )
         internal
         returns (bytes memory)
@@ -250,18 +257,18 @@ contract SharedHarness is Test {
         inputs[0] = "node";
         inputs[1] = "test/utils/getPartialWithdrawProve.cjs";
         inputs[2] = "20";
-        inputs[3] = vm.toString(leafIndex);
-        inputs[4] = vm.toString(changeLeafIndex);
-        inputs[5] = vm.toString(nullifier);
-        inputs[6] = vm.toString(changeNullifier);
-        inputs[7] = vm.toString(nullifierHash);
-        inputs[8] = vm.toString(changeCommitmentHash);
-        inputs[9] = vm.toString(denomination);
-        inputs[10] = vm.toString(recipient);
-        inputs[11] = vm.toString(amount);
-        inputs[12] = vm.toString(relayer);
-        inputs[13] = vm.toString(fee);
-        inputs[14] = vm.toString(abi.encode(pushedCommitments));
+        inputs[3] = vm.toString(getPartialWithdrawProveStruct.leafIndex);
+        inputs[4] = vm.toString(getPartialWithdrawProveStruct.changeLeafIndex);
+        inputs[5] = vm.toString(getPartialWithdrawProveStruct.nullifier);
+        inputs[6] = vm.toString(getPartialWithdrawProveStruct.changeNullifier);
+        inputs[7] = vm.toString(getPartialWithdrawProveStruct.nullifierHash);
+        inputs[8] = vm.toString(getPartialWithdrawProveStruct.changeCommitmentHash);
+        inputs[9] = vm.toString(getPartialWithdrawProveStruct.denomination);
+        inputs[10] = vm.toString(getPartialWithdrawProveStruct.recipient);
+        inputs[11] = vm.toString(getPartialWithdrawProveStruct.amount);
+        inputs[12] = vm.toString(getPartialWithdrawProveStruct.relayer);
+        inputs[13] = vm.toString(getPartialWithdrawProveStruct.fee);
+        inputs[14] = vm.toString(abi.encode(getPartialWithdrawProveStruct.pushedCommitments));
 
         bytes memory result = vm.ffi(inputs);
         return result;

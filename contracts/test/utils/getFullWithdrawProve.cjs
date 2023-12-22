@@ -1,4 +1,4 @@
-const { MerkleTree } = require("./merkleTree.js");
+const { MerkleTree } = require("./merkleTree.cjs");
 const { ethers } = require("ethers");
 const {
   Contract,
@@ -36,11 +36,11 @@ class PoseidonHasher {
 async function prove(witness) {
   const wasmPath = path.join(
     __dirname,
-    "../build/full_withdraw_js/full_withdraw.wasm"
+    "../../../circuits/build/full_withdraw_js/full_withdraw.wasm"
   );
   const zkeyPath = path.join(
     __dirname,
-    "../build/full_withdraw_circuit_final.zkey"
+    "../../../circuits/setup/full_withdraw_circuit_final.zkey"
   );
 
   // I get wasm error here.
