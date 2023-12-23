@@ -61,7 +61,8 @@ contract CoreTest is SharedHarness {
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
         address[] memory accounts = deployAndAssertCore(alice, commitment);
-        commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
+        uint256 nonce = 0;
+        commitAndAssertCore(alice, accounts[0], commitment, nonce, denomination);
 
         clearAndAssertCore(alice, accounts[0], bob, denomination);
 
@@ -73,7 +74,7 @@ contract CoreTest is SharedHarness {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
         (bytes32 commitment,, bytes32 nullifier) =
-            abi.decode(getDepositCommitmentHash(newLeafIndex, 1 ether), (bytes32, bytes32, bytes32));
+            abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
         bytes32[] memory pushedCommitments = new bytes32[](0);
 
         address[] memory accounts = deployAndAssertCore(alice, commitment);
@@ -90,18 +91,16 @@ contract CoreTest is SharedHarness {
 
         //TODO refactor to harness
         (bytes32 commitment, bytes32 nullifierHash, bytes32 nullifier) =
-            abi.decode(getDepositCommitmentHash(newLeafIndex, 1 ether), (bytes32, bytes32, bytes32));
+            abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
         bytes32[] memory pushedCommitments = new bytes32[](0);
 
         address[] memory accounts = deployAndAssertCore(alice, commitment);
-
         commitAndAssertCore(alice, accounts[0], commitment, 0, denomination);
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
 
-        
         uint256 nextLeafIndex = 1;
         (bytes32 newCommitment, , bytes32 newNullifier) =
-            abi.decode(getDepositCommitmentHash(nextLeafIndex, 0.75 ether), (bytes32, bytes32, bytes32));
+            abi.decode(getDepositCommitmentHash(nextLeafIndex, denomination - (denomination / core.paymentNumber() ) ), (bytes32, bytes32, bytes32));
 
         pushedCommitments = new bytes32[](1);
         pushedCommitments[0] = commitment;
@@ -121,7 +120,7 @@ contract CoreTest is SharedHarness {
                         newCommitment, // new commitment
                         denomination,
                         alice,
-                        0.25 ether, // amount = denomination / payment number
+                        (denomination / core.paymentNumber()), // amount = denomination / payment number
                         relayer_signer,
                         0, // fee
                         pushedCommitments
