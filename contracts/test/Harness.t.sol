@@ -171,6 +171,69 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
+    struct PartialWithdrawStruct {
+        address relayer;
+        address user;
+        uint256 newLeafIndex;
+        uint256 nextLeafIndex;
+        bytes32 nullifier;
+        bytes32 newNullifier;
+        bytes32 nullifierHash;
+        bytes32 commitment;
+        uint256 denomination;
+        bytes32[] pushedCommitments;
+    }
+
+
+    function partialWithdrawAndAssertCore(
+        PartialWithdrawStruct memory partialWithdrawStruct
+    ) internal {
+        vm.startPrank(partialWithdrawStruct.relayer);
+
+        Core.Proof memory partialWithdrawProof;
+        bytes32 root;
+        bytes32 newRoot;
+        {
+            (partialWithdrawProof, root, newRoot) = abi.decode(
+                getPartialWithdrawProve(
+                    GetPartialWithdrawProveStruct(
+                        partialWithdrawStruct.newLeafIndex,
+                        partialWithdrawStruct.nextLeafIndex,
+                        partialWithdrawStruct.nullifier, 
+                        partialWithdrawStruct.newNullifier, // new nullifier
+                        partialWithdrawStruct.nullifierHash,
+                        partialWithdrawStruct.commitment, // new commitment
+                        partialWithdrawStruct.denomination,
+                        partialWithdrawStruct.user,
+                        (partialWithdrawStruct.denomination / core.paymentNumber()), // amount = denomination / payment number
+                        relayer_signer,
+                        0, // fee
+                        partialWithdrawStruct.pushedCommitments
+                    )
+
+                ),
+                (Core.Proof, bytes32, bytes32)
+            );
+        }
+
+        assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), 0);
+        assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
+
+        core.withdraw(
+            partialWithdrawProof,
+            root, 
+            partialWithdrawStruct.nullifierHash,
+            partialWithdrawStruct.commitment,
+            newRoot,
+            payable(partialWithdrawStruct.user),
+            payable(partialWithdrawStruct.relayer),
+            0 // fee
+        );
+
+        assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), partialWithdrawStruct.denomination / core.paymentNumber());
+        assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
+    }
+
     function getDepositCommitmentHash(uint256 leafIndex, uint256 denomination) internal returns (bytes memory) {
         string[] memory inputs = new string[](4);
         inputs[0] = "node";
@@ -250,9 +313,7 @@ contract SharedHarness is Test {
         bytes32[] pushedCommitments;
     }
 
-    // todo addinf @ notoce
-    // Remove local var error by putting all argument to struct
-
+    // todo adding @ notice
     function getPartialWithdrawProve(
         GetPartialWithdrawProveStruct memory getPartialWithdrawProveStruct
     )

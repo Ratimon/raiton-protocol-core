@@ -105,49 +105,20 @@ contract CoreTest is SharedHarness {
         pushedCommitments = new bytes32[](1);
         pushedCommitments[0] = commitment;
 
-        Core.Proof memory partialWithdrawProof;
-        bytes32 root;
-        bytes32 newRoot;
-        {
-            (partialWithdrawProof, root, newRoot) = abi.decode(
-                getPartialWithdrawProve(
-                    GetPartialWithdrawProveStruct(
-                        newLeafIndex,
-                        nextLeafIndex,
-                        nullifier, 
-                        newNullifier, // new nullifier
-                        nullifierHash,
-                        newCommitment, // new commitment
-                        denomination,
-                        alice,
-                        (denomination / core.paymentNumber()), // amount = denomination / payment number
-                        relayer_signer,
-                        0, // fee
-                        pushedCommitments
-                    )
-
-                ),
-                (Core.Proof, bytes32, bytes32)
-            );
-        }
-
-        assertEq(core.getWithdrawnAmount(nullifierHash), 0);
-        assertEq(core.getIsNullified(nullifierHash), false);
-
-        core.withdraw(
-            partialWithdrawProof,
-            root, 
-            nullifierHash,
-            newCommitment,
-            newRoot,
-            payable(alice),
-            payable(relayer_signer),
-            0 // fee
+        partialWithdrawAndAssertCore(
+            PartialWithdrawStruct(
+                relayer_signer,
+                alice,
+                newLeafIndex,
+                nextLeafIndex,
+                nullifier,
+                newNullifier,
+                nullifierHash,
+                newCommitment,
+                denomination,
+                pushedCommitments
+            )
         );
-
-        assertEq(core.getWithdrawnAmount(nullifierHash), 0.25 ether);
-        assertEq(core.getIsNullified(nullifierHash), false);
-
 
     }
 
