@@ -245,7 +245,7 @@ contract SharedHarness is Test {
             newRoot,
             payable(partialWithdrawStruct.user),
             payable(partialWithdrawStruct.relayer),
-            0 // fee
+            partialWithdrawStruct.fee // fee
         );
 
         assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), partialWithdrawStruct.denomination / core.paymentNumber());
