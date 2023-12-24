@@ -62,9 +62,8 @@ contract CoreTest is SharedHarness {
 
         DepositReturnStruct[] memory depositReturns = deployAndAssertCore(alice, commitment);
 
-        commitAndAssertCore(alice, depositReturns[0].account, commitment, depositReturns[0].nonce, denomination);
-
-        clearAndAssertCore(alice, depositReturns[0].account, bob, denomination);
+        address account = commitAndAssertCore(alice, depositReturns[0].account, commitment, depositReturns[0].nonce, denomination);
+        clearAndAssertCore(alice, account, bob, denomination);
 
         vm.expectRevert(bytes("SortedList: k must be > than list size"));
         core.getTop(2);

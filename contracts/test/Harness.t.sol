@@ -48,7 +48,6 @@ contract SharedHarness is Test {
         address account;
         uint256 nonce;
     }
-
     function deployAndAssertCore(address user, bytes32 commitment) internal returns (DepositReturnStruct[] memory depositReturns) {
         vm.startPrank(user);
 
@@ -86,7 +85,7 @@ contract SharedHarness is Test {
 
     function commitAndAssertCore(address user, address account, bytes32 commitment, uint256 nonce, uint256 amount)
         internal
-        returns (bytes32 returningCommitment)
+        returns (address)
     {
         startHoax(user, amount);
 
@@ -96,7 +95,7 @@ contract SharedHarness is Test {
         uint256 prePendingCommittedAmount = core.getPendingCommittedAmount(account);
         uint256 preOwnerCommittedAmount = core.getOwnerCommittedAmount(user);
 
-        returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
+        bytes32 returningCommitment = IAccount(account).commit_2ndPhase{value: amount}();
         assertEq(returningCommitment, commitment);
 
         assertEq(core.getPendingAccount(returningCommitment, nonce), address(0));
@@ -108,6 +107,8 @@ contract SharedHarness is Test {
         assertEq(core.getOwnerCommittedAmount(user), preOwnerCommittedAmount + amount);
 
         vm.stopPrank();
+
+        return account;
     }
 
     function clearAndAssertCore(address user, address account, address to, uint256 amount) internal {
