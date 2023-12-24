@@ -142,8 +142,8 @@ contract SharedHarness is Test {
         bytes32 nullifier,
         bytes32 commitment,
         uint256 amount,
-        bytes32[] memory pushedCommitments
-    ) internal {
+        bytes32[] memory existingCommitments
+    ) internal returns (bytes32[] memory pushCommitments)  {
         vm.startPrank(user);
 
         assertTrue(core.getOwnerCommitment(user) != bytes32(0));
@@ -160,7 +160,7 @@ contract SharedHarness is Test {
                         amount,
                         nullifier, //secret
                         commitment,
-                        pushedCommitments
+                        existingCommitments
                     )
                 ),
                 (Core.Proof, bytes32)
@@ -176,13 +176,18 @@ contract SharedHarness is Test {
         {
             // assert tree root and elements are correct
             (bytes32 preDepositRoot, uint256 elements, bytes32 postDepositRoot) =
-                getJsTreeAssertions(pushedCommitments, commitment);
+                getJsTreeAssertions(existingCommitments, commitment);
             assertEq(preDepositRoot, core.roots(newLeafIndex));
             assertEq(elements, core.nextIndex());
             assertEq(postDepositRoot, core.roots(newLeafIndex + 1));
         }
 
         vm.stopPrank();
+
+        pushCommitments = new bytes32[](existingCommitments.length + 1);
+        pushCommitments[0] = commitment;
+
+        return pushCommitments;
     }
 
     struct PartialWithdrawStruct {

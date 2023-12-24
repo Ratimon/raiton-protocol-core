@@ -74,12 +74,12 @@ contract CoreTest is SharedHarness {
         uint256 denomination = 1 ether;
         (bytes32 commitment,, bytes32 nullifier) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
-        bytes32[] memory pushedCommitments = new bytes32[](0);
+        bytes32[] memory existingCommitments = new bytes32[](0);
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
 
         commitAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, denomination);
-        depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
+        depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
     }
     
 
@@ -92,18 +92,15 @@ contract CoreTest is SharedHarness {
         //TODO refactor to harness
         (bytes32 commitment, bytes32 nullifierHash, bytes32 nullifier) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
-        bytes32[] memory pushedCommitments = new bytes32[](0);
+        bytes32[] memory existingCommitments = new bytes32[](0);
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
         commitAndAssertCore(alice, deployReturns[0].account , commitment, deployReturns[0].nonce, denomination);
-        depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
+        bytes32[] memory pushedCommitments = depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
 
         uint256 nextLeafIndex = 1;
         (bytes32 newCommitment, , bytes32 newNullifier) =
             abi.decode(getDepositCommitmentHash(nextLeafIndex, denomination - (denomination / core.paymentNumber() ) ), (bytes32, bytes32, bytes32));
-
-        pushedCommitments = new bytes32[](1);
-        pushedCommitments[0] = commitment;
 
         partialWithdrawAndAssertCore(
             PartialWithdrawStruct(
