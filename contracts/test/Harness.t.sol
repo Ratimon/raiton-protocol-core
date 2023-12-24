@@ -140,12 +140,14 @@ contract SharedHarness is Test {
         {
             (depositProof, newRoot) = abi.decode(
                 getDepositProve(
-                    newLeafIndex,
-                    core.roots(core.currentRootIndex()),
-                    amount,
-                    nullifier, //secret
-                    commitment,
-                    pushedCommitments
+                    GetDepositProveStruct(
+                        newLeafIndex,
+                        core.roots(core.currentRootIndex()),
+                        amount,
+                        nullifier, //secret
+                        commitment,
+                        pushedCommitments
+                    )
                 ),
                 (Core.Proof, bytes32)
             );
@@ -179,24 +181,28 @@ contract SharedHarness is Test {
         return vm.ffi(inputs);
     }
 
+    struct GetDepositProveStruct {
+        uint256 leafIndex;
+        bytes32 oldRoot;
+        uint256 denomination;
+        bytes32 nullifier;
+        bytes32 commitmentHash;
+        bytes32[] pushedCommitments;
+    }
+
     function getDepositProve(
-        uint256 leafIndex,
-        bytes32 oldRoot,
-        uint256 denomination,
-        bytes32 nullifier,
-        bytes32 commitmentHash,
-        bytes32[] memory pushedCommitments
+        GetDepositProveStruct memory getDepositProveStruct
     ) internal returns (bytes memory) {
         string[] memory inputs = new string[](9);
         inputs[0] = "node";
         inputs[1] = "test/utils/getDepositProve.cjs";
         inputs[2] = "20";
-        inputs[3] = vm.toString(leafIndex);
-        inputs[4] = vm.toString(oldRoot);
-        inputs[5] = vm.toString(commitmentHash);
-        inputs[6] = vm.toString(denomination);
-        inputs[7] = vm.toString(nullifier);
-        inputs[8] = vm.toString(abi.encode(pushedCommitments));
+        inputs[3] = vm.toString(getDepositProveStruct.leafIndex);
+        inputs[4] = vm.toString(getDepositProveStruct.oldRoot);
+        inputs[5] = vm.toString(getDepositProveStruct.commitmentHash);
+        inputs[6] = vm.toString(getDepositProveStruct.denomination);
+        inputs[7] = vm.toString(getDepositProveStruct.nullifier);
+        inputs[8] = vm.toString(abi.encode(getDepositProveStruct.pushedCommitments));
 
         bytes memory result = vm.ffi(inputs);
         return result;
