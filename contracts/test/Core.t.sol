@@ -36,22 +36,22 @@ contract CoreTest is SharedHarness {
         (bytes32 commitment,,) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
-        DepositReturnStruct[] memory depositReturns = deployAndAssertCore(alice, commitment);
+        DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
 
         // It is single premium just needs to abstract four payments into single one via router
         // to do fix amount
         // //todo: assert emit
-        commitAndAssertCore(alice, depositReturns[0].account, commitment, 0, denomination);
-        commitAndAssertCore(alice, depositReturns[1].account, commitment, 1, denomination);
-        commitAndAssertCore(alice, depositReturns[2].account, commitment, 2, denomination);
-        commitAndAssertCore(alice, depositReturns[3].account, commitment, 3, denomination);
+        commitAndAssertCore(alice, deployReturns[0].account, commitment, 0, denomination);
+        commitAndAssertCore(alice, deployReturns[1].account, commitment, 1, denomination);
+        commitAndAssertCore(alice, deployReturns[2].account, commitment, 2, denomination);
+        commitAndAssertCore(alice, deployReturns[3].account, commitment, 3, denomination);
 
         address[] memory topAccounts = core.getTop(2);
-        assertEq(topAccounts[0], depositReturns[0].account);
-        assertEq(topAccounts[1], depositReturns[1].account);
+        assertEq(topAccounts[0], deployReturns[0].account);
+        assertEq(topAccounts[1], deployReturns[1].account);
 
         address lowestAccount = core.getBottom();
-        assertEq(lowestAccount, depositReturns[3].account);
+        assertEq(lowestAccount, deployReturns[3].account);
     }
 
     function test_clear_commitment_Callback() external {
@@ -60,9 +60,9 @@ contract CoreTest is SharedHarness {
         (bytes32 commitment,,) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
-        DepositReturnStruct[] memory depositReturns = deployAndAssertCore(alice, commitment);
+        DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
 
-        address account = commitAndAssertCore(alice, depositReturns[0].account, commitment, depositReturns[0].nonce, denomination);
+        address account = commitAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, denomination);
         clearAndAssertCore(alice, account, bob, denomination);
 
         vm.expectRevert(bytes("SortedList: k must be > than list size"));
@@ -76,9 +76,9 @@ contract CoreTest is SharedHarness {
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
         bytes32[] memory pushedCommitments = new bytes32[](0);
 
-        DepositReturnStruct[] memory depositReturns = deployAndAssertCore(alice, commitment);
+        DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
 
-        commitAndAssertCore(alice, depositReturns[0].account, commitment, depositReturns[0].nonce, denomination);
+        commitAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, denomination);
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
     }
     
@@ -94,8 +94,8 @@ contract CoreTest is SharedHarness {
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
         bytes32[] memory pushedCommitments = new bytes32[](0);
 
-        DepositReturnStruct[] memory depositReturns = deployAndAssertCore(alice, commitment);
-        commitAndAssertCore(alice, depositReturns[0].account , commitment, depositReturns[0].nonce, denomination);
+        DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
+        commitAndAssertCore(alice, deployReturns[0].account , commitment, deployReturns[0].nonce, denomination);
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, pushedCommitments);
 
         uint256 nextLeafIndex = 1;

@@ -44,27 +44,27 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
-    struct DepositReturnStruct {
+    struct DeployReturnStruct {
         address account;
         uint256 nonce;
     }
-    function deployAndAssertCore(address user, bytes32 commitment) internal returns (DepositReturnStruct[] memory depositReturns) {
+    function deployAndAssertCore(address user, bytes32 commitment) internal returns (DeployReturnStruct[] memory deployReturns) {
         vm.startPrank(user);
 
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
        
-        depositReturns = new DepositReturnStruct[](accounts.length);
+        deployReturns = new DeployReturnStruct[](accounts.length);
         IAccount account;
         for (uint256 i = 0; i < accounts.length; i++) {
             account = IAccount(accounts[i]);
 
-            depositReturns[i] = DepositReturnStruct(accounts[i], account.nonce());
+            deployReturns[i] = DeployReturnStruct(accounts[i], account.nonce());
         }
 
-        assertEq(core.getPendingAccount(commitment, depositReturns[0].nonce), depositReturns[0].account);
-        assertEq(core.getPendingAccount(commitment, depositReturns[1].nonce), depositReturns[1].account);
-        assertEq(core.getPendingAccount(commitment, depositReturns[2].nonce), depositReturns[2].account);
-        assertEq(core.getPendingAccount(commitment, depositReturns[3].nonce), depositReturns[3].account);
+        assertEq(core.getPendingAccount(commitment, deployReturns[0].nonce), deployReturns[0].account);
+        assertEq(core.getPendingAccount(commitment, deployReturns[1].nonce), deployReturns[1].account);
+        assertEq(core.getPendingAccount(commitment, deployReturns[2].nonce), deployReturns[2].account);
+        assertEq(core.getPendingAccount(commitment, deployReturns[3].nonce), deployReturns[3].account);
 
         vm.stopPrank();
     }
