@@ -181,6 +181,7 @@ contract SharedHarness is Test {
         bytes32 nullifierHash;
         bytes32 commitment;
         uint256 denomination;
+        uint256 fee;
         bytes32[] pushedCommitments;
     }
 
@@ -207,7 +208,7 @@ contract SharedHarness is Test {
                         partialWithdrawStruct.user,
                         (partialWithdrawStruct.denomination / core.paymentNumber()), // amount = denomination / payment number
                         relayer_signer,
-                        0, // fee
+                        partialWithdrawStruct.fee, // fee
                         partialWithdrawStruct.pushedCommitments
                     )
 

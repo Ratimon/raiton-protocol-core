@@ -88,6 +88,7 @@ contract CoreTest is SharedHarness {
 
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
+        uint256 fee = 0 ether;
 
         //TODO refactor to harness
         (bytes32 commitment, bytes32 nullifierHash, bytes32 nullifier) =
@@ -116,6 +117,7 @@ contract CoreTest is SharedHarness {
                 nullifierHash,
                 newCommitment,
                 denomination,
+                fee,
                 pushedCommitments
             )
         );
