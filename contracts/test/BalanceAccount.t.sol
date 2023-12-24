@@ -25,12 +25,12 @@ contract BalanceAccountTest is SharedHarness {
         (bytes32 commitment,,) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
-        address[] memory accounts = deployAndAssertCore(alice, commitment);
+        DepositReturnStruct[] memory depositReturns = deployAndAssertCore(alice, commitment);
 
-        assertAccount(alice, accounts[0], commitment, 0, denomination);
-        assertAccount(bob, accounts[1], commitment, 1, denomination);
-        assertAccount(carol, accounts[2], commitment, 2, denomination);
-        assertAccount(dave, accounts[3], commitment, 3, denomination);
+        assertAccount(alice, depositReturns[0].account, commitment, depositReturns[0].nonce , denomination);
+        assertAccount(bob, depositReturns[1].account, commitment, depositReturns[1].nonce, denomination);
+        assertAccount(carol, depositReturns[2].account, commitment, depositReturns[2].nonce, denomination);
+        assertAccount(dave, depositReturns[3].account, commitment, depositReturns[3].nonce, denomination);
 
         vm.stopPrank();
     }
