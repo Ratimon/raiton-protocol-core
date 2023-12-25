@@ -257,7 +257,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         uint256 _fee
     ) external {
 
-        // require(isKnownRoot(_root), "Core: No merkle root found"); // Make sure to use a recent one
+        require(isKnownRoot(_root), "Core: No merkle root found"); // Make sure to use a recent one
 
         WithdrawData storage withdrawData = nullifierHashToWithdraw[_nullifierHash];
 

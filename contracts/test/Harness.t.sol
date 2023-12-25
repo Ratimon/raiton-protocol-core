@@ -250,6 +250,8 @@ contract SharedHarness is Test {
 
         assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), partialWithdrawStruct.denomination / core.paymentNumber());
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
+
+        vm.stopPrank();
     }
 
     function getDepositCommitmentHash(uint256 leafIndex, uint256 denomination) internal returns (bytes memory) {
