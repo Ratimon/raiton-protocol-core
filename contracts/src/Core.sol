@@ -63,6 +63,8 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);
     event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
 
+    // TODO Add Deposit & Withdrawal events
+
     // TODO Add isCommitSettle?
     // TODO change committedAmount to just Counter
     struct DepositData {
@@ -264,6 +266,8 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         require(!withdrawData.isNullified, "Core: Already ");
         require(withdrawData.withdrawnAmount < denomination, "Core: Withdrawn Amount already exceeded");
 
+        uint256 amountOut = denomination / paymentNumber;
+
          // TODO if only final full withdraw ?
          // TODO Add time constraint
          require(
@@ -274,7 +278,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
                 [
                     uint256(_root),
                     uint256(_nullifierHash),
-                    denomination/paymentNumber,
+                    amountOut,
                     uint256(_newCommitmentHash),
                     uint256(_newRoot),
                     uint256(uint160(address(_recipient))),
@@ -285,14 +289,25 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
             "Invalid withdraw proof"
         );
 
-
-        withdrawData.withdrawnAmount += denomination /paymentNumber;
+        withdrawData.withdrawnAmount += amountOut;
 
         if(withdrawData.withdrawnAmount  == denomination)
             withdrawData.isNullified = true;
+
+        uint128 newCurrentRootIndex = uint128((currentRootIndex + 1) % ROOT_HISTORY_SIZE);
+        currentRootIndex = newCurrentRootIndex;
+        roots[newCurrentRootIndex] = _newRoot;
+        uint256 _nextIndex = nextIndex;
+        nextIndex += 1;
+
+        // todo add rule to use whether getBottom() or getTop()
+        address accountToWithdraw = getBottom();
+        if ( accountToWithdraw.balance == amountOut )
+            _removeAccount(accountToWithdraw);
+
+        // todo add withdraw callback
        
     }
-
 
     function getPendingCommitment(address account) external view returns (bytes32) {
         return pendingDeposit[account].commitment;

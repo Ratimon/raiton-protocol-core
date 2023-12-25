@@ -205,7 +205,7 @@ contract SharedHarness is Test {
     }
     function partialWithdrawAndAssertCore(
         PartialWithdrawStruct memory partialWithdrawStruct
-    ) internal {
+    ) internal returns(bool) {
         vm.startPrank(partialWithdrawStruct.relayer);
 
         Core.Proof memory partialWithdrawProof;
@@ -237,6 +237,9 @@ contract SharedHarness is Test {
         assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), 0);
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
 
+        assertEq(core.roots( core.currentRootIndex()  ), root);
+        assertEq(core.roots( core.currentRootIndex() + 1 ), bytes32(0));
+        
         core.withdraw(
             partialWithdrawProof,
             root, 
@@ -249,9 +252,15 @@ contract SharedHarness is Test {
         );
 
         assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), partialWithdrawStruct.denomination / core.paymentNumber());
+        // TODO fix when scenario of 4 time partial withdrawn
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
 
+        assertEq(core.roots( core.currentRootIndex() - 1 ), root);
+        assertEq(core.roots(core.currentRootIndex()), newRoot);
+
         vm.stopPrank();
+
+        return core.getIsNullified(partialWithdrawStruct.nullifierHash);
     }
 
     function getDepositCommitmentHash(uint256 leafIndex, uint256 denomination) internal returns (bytes memory) {
