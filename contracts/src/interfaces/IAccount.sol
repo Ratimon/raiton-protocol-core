@@ -13,21 +13,7 @@ interface IAccount {
 
     function clear_commitment(address payable to) external;
 
-    function deposit(
-        // bytes calldata _proof,
-        bytes32 newRoot
-    ) external;
-
-    // ignoring _proof now
-    function withdraw(
-        // bytes calldata _proof,
-        bytes32 _root,
-        bytes32 _nullifierHash,
-        address payable _recipient,
-        uint256 _amount,
-        address payable _relayer,
-        uint256 _fee
-    ) external;
+    function withdraw_callback(address caller, address to, uint256 amountOut) external;
 
     // ----------- Getters -----------
 

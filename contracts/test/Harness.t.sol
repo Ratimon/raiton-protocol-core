@@ -231,7 +231,7 @@ contract SharedHarness is Test {
                         partialWithdrawStruct.nullifierHash,
                         partialWithdrawStruct.commitment, // new commitment
                         partialWithdrawStruct.denomination,
-                        partialWithdrawStruct.user,
+                        partialWithdrawStruct.user, //recipient
                         (partialWithdrawStruct.denomination / core.paymentNumber()), // amount = denomination / payment number
                         relayer_signer,
                         partialWithdrawStruct.fee, // fee
@@ -249,7 +249,12 @@ contract SharedHarness is Test {
         uint128 _currentRootIndex = core.currentRootIndex();
         assertEq(core.roots( _currentRootIndex  ), root);
         assertEq(core.roots( _currentRootIndex + 1 ), bytes32(0));
-        
+
+
+        uint256 preWithdrawToBalance = partialWithdrawStruct.user.balance;
+
+        assertEq( preWithdrawToBalance , 0 ether);
+        console2.log("preWithdrawToBalance", preWithdrawToBalance);
         
         core.withdraw(
             partialWithdrawProof,
@@ -268,7 +273,13 @@ contract SharedHarness is Test {
 
         assertEq(core.roots( core.currentRootIndex() - 1 ), root);
         assertEq(core.roots(core.currentRootIndex()), newRoot);
-        assertEq( core.currentRootIndex(), _currentRootIndex + 1);
+        assertEq(core.currentRootIndex(), _currentRootIndex + 1);
+
+         // todo  _updateAccount
+
+        assertEq( address(partialWithdrawStruct.user).balance - preWithdrawToBalance, (partialWithdrawStruct.denomination / core.paymentNumber()));
+        assertEq( alice.balance , 0.25 ether);
+        console2.log("alice.balance", alice.balance);
 
         vm.stopPrank();
 

@@ -7,8 +7,8 @@ import {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-// import  {ICore} from "@main/interfaces/ICore.sol";
 
+// TODO Add interface
 // TODO abstract into 2 types annuoty and endowmwnt
 // TODO define invariant
 /**
@@ -84,6 +84,11 @@ contract BalanceAccount {
         _processWithdraw(to, denomination);
 
         IPoolsCounterBalancer(factory).clear_commitment_Callback(msg.sender, address(this), nonce);
+    }
+
+    function withdraw_callback(address caller, address payable to, uint256 amountOut) external {
+        require(caller == factory, "caller is not factory");
+        _processWithdraw(to, amountOut);
     }
 
     // TODO fill missed arguments

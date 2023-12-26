@@ -3,6 +3,7 @@ pragma solidity =0.8.20;
 
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
+import {IAccount} from "@main/interfaces/IAccount.sol";
 import {ICore} from "@main/interfaces/ICore.sol";
 import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
 import {IPartialWithdrawVerifier} from "@main/interfaces/IPartialWithdrawVerifier.sol";
@@ -304,8 +305,11 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         address accountToWithdraw = getBottom();
         if ( accountToWithdraw.balance == amountOut )
             _removeAccount(accountToWithdraw);
+            // todo add rule to use whether getBottom() or getTop()
+            // todo  _updateAccount
 
         // todo add withdraw callback
+        IAccount(accountToWithdraw).withdraw_callback(address(this), _recipient, amountOut);
        
     }
 
