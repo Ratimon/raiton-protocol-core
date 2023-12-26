@@ -146,9 +146,6 @@ contract SharedHarness is Test {
     ) internal returns (bytes32[] memory pushCommitments)  {
         vm.startPrank(user);
 
-        assertTrue(core.getOwnerCommitment(user) != bytes32(0));
-        assertTrue(core.getOwnerCommittedAmount(user) != 0);
-
         Core.Proof memory depositProof;
         bytes32 newRoot;
         {
@@ -167,11 +164,23 @@ contract SharedHarness is Test {
             );
         }
 
+        assertTrue(core.getOwnerCommitment(user) != bytes32(0));
+        assertTrue(core.getOwnerCommittedAmount(user) != 0);
+
+        uint128 _currentRootIndex = core.currentRootIndex();
+        //initialRootZero
+        // todo: handle case when it is not 'initialRootZero'
+        assertEq(core.roots( _currentRootIndex), 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb );
+        assertEq(core.roots( _currentRootIndex + 1 ), bytes32(0));
+
         //todo: assert emit
         core.deposit(depositProof, newRoot);
 
         assertEq(core.getOwnerCommitment(user), bytes32(0));
         assertEq(core.getOwnerCommittedAmount(user), 0);
+
+        assertEq(core.roots( core.currentRootIndex()), newRoot);
+        assertEq( core.currentRootIndex(), _currentRootIndex + 1);
 
         {
             // assert tree root and elements are correct
@@ -237,8 +246,10 @@ contract SharedHarness is Test {
         assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), 0);
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
 
-        assertEq(core.roots( core.currentRootIndex()  ), root);
-        assertEq(core.roots( core.currentRootIndex() + 1 ), bytes32(0));
+        uint128 _currentRootIndex = core.currentRootIndex();
+        assertEq(core.roots( _currentRootIndex  ), root);
+        assertEq(core.roots( _currentRootIndex + 1 ), bytes32(0));
+        
         
         core.withdraw(
             partialWithdrawProof,
@@ -257,6 +268,7 @@ contract SharedHarness is Test {
 
         assertEq(core.roots( core.currentRootIndex() - 1 ), root);
         assertEq(core.roots(core.currentRootIndex()), newRoot);
+        assertEq( core.currentRootIndex(), _currentRootIndex + 1);
 
         vm.stopPrank();
 
