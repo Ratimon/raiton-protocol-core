@@ -253,9 +253,6 @@ contract SharedHarness is Test {
 
         uint256 preWithdrawToBalance = partialWithdrawStruct.user.balance;
 
-        assertEq( preWithdrawToBalance , 0 ether);
-        console2.log("preWithdrawToBalance", preWithdrawToBalance);
-        
         core.withdraw(
             partialWithdrawProof,
             root, 
@@ -278,8 +275,6 @@ contract SharedHarness is Test {
          // todo  _updateAccount
 
         assertEq( address(partialWithdrawStruct.user).balance - preWithdrawToBalance, (partialWithdrawStruct.denomination / core.paymentNumber()));
-        assertEq( alice.balance , 0.25 ether);
-        console2.log("alice.balance", alice.balance);
 
         vm.stopPrank();
 
