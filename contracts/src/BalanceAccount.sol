@@ -57,6 +57,8 @@ contract BalanceAccount {
         _;
     }
 
+    // add deposit to another "balanceAccount"
+
     function commit_2ndPhase() external payable inStatus(Status.UNCOMMITED) returns (bytes32) {
         //TODO handle ERC20 case
         uint256 amountIn = denomination / cashInflows; // 1 ether/

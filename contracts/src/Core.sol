@@ -44,6 +44,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     uint256 public paymentNumber;
 
     // TODO ? adding new struct of Accountkey
+    // TODO ? add getter to get address then connect with router, so we can commit via account
     mapping(bytes32 => mapping(uint256 => address)) public getPendingAccount;
 
     // Deposit Side:
@@ -68,6 +69,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
     // TODO Add isCommitSettle?
     // TODO change committedAmount to just Counter
+    // TOFIX Add state to prevent withdrawing when not deposit yet (ie. alternatively move addAccount to deposit code block)
     struct DepositData {
         bytes32 commitment;
         uint256 committedAmount;
@@ -110,7 +112,10 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     // TODO annuity commit - low level commit
     // TODO  fee entrance to prevent DOS?
     // TODO  pausable / re-entrancy libs ?
-    // TODO whoever can create their smart contract and deploly to participate
+    // TODO whoever can create their smart contract and deploy to participate
+    /**
+     * @dev deploy  numbers of account based on the schelling point
+     */
     function initiate_1stPhase_Account(bytes32 commitment)
         external
         noDelegateCall
@@ -120,15 +125,62 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         require(commitment != bytes32(0), "Core: Invalid commitment");
         // require(pendingDeposit[msg.sender].commitment == bytes32(0), "Core: Already Deployed");
 
-        accounts = new address[](paymentNumber);
+        // TODO : add require when accountCurrentNumber < accountSchellingNumber
+
 
         // TODO : the loop number will depends on the schelling point
-        for (uint256 i = 0; i < paymentNumber; i++) {
+        // TODO add more scenarios
+        // TODO : fix BalanceAccount with recommitabillity
+        // TODO : remove outflow to maintain privacy (separating between deposit and withdraw)
+        // eg. annuity: single premium, withdraw N time
+        // 1) annuity: 4 contracts -(inflow = 4) each of 0.25  -equal single premium of 1 
+        // 1) annuity: 4 contracts -(outflow = 1)   each of 0.25 -equal 4 payment of 0.25 ether for 4 contracts
+
+        // 2) annuity: 2 contracts -(inflow = 2) each of 0.5  -equal single premium of 1
+        // 2) annuity: 2 contracts -(outflow = 2)   each of 0.25 -equal 2 payment of 0.5 ether for 4 contracts
+
+        // 3) annuity: 1 contracts -(inflow = 1) only 1  - qual single premium of 1
+        // 2) annuity: 1 contracts -(outflow = 4)   only 1 -equal 1 payment of 1 ether -equal 1 payment of 1 ether for 1 contract
+
+
+        // eg. endowment: N premiums, withdraw 1 time
+        // 1) endowment: 4 contracts -(inflow = 4) each of 0.25  -equal 4 payments totoal of 1 ether
+        // 1) endowment: 4 contracts -(outflow = 1) each of 0.25 -equal 4 payment of 0.25 ether for 4 contracts
+
+        uint256 contractNumber;
+        uint256 accountDifferece;
+        // TODO hardcoded fix it
+        // uint256 cap = 2;
+
+        uint256 inflow;
+        
+        if( accountCurrentNumber < accountSchellingNumber)  {
+
+            accountDifferece = accountSchellingNumber - accountCurrentNumber;
+
+            // contractNumber = accountDifferece > cap ? 4 : 2;
+
+            // todo fix as it is hardcoded
+            contractNumber = paymentNumber;
+            inflow = contractNumber;
+
+        } else {
+            // todo fix as it is hardcoded handle if no contract is deploy yet
+            revert( "Core: Schelling > CurrentNumber : Do commit via router");
+
+        }
+
+
+        accounts = new address[](contractNumber);
+
+        for (uint256 i = 0; i < contractNumber; i++) {
             //sanity check for commitment
 
             // TODO : now hardcoded inflow and outflow as 1 and paymentNumber respectively
-            // TODO : denomination should be / 4 ?
+            // TODO : denomination should be 1 / 4 ?
+            // case 1  : denomination should be 1 / 4 ?
             address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
+            // address account = deploy(address(this), commitment, denomination, contractNumber, 4, i);
             require(getPendingAccount[commitment][i] == address(0), "Core: Account Already Created");
 
             // TODO : do some optimization to query balanceAccount address? like mapping address to getPendingAccount
@@ -147,11 +199,38 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         // return accounts;
     }
 
-    // set
-    // 1) insert
-    // 2) withdraw
+    /**
+     * @dev add depositData to already deployed account (pendingDeposit) called by router
+     */
 
-    // call from child contract
+    function getAccountToCommit() external view returns (address) {
+       
+
+        // TODO require accountCurrentNumber > accountSchellingNumber)
+        // TODO require have account state (sorted list)
+        // TODO connect with router
+        // TODO draft with below comment
+                
+        // if( accountCurrentNumber < accountSchellingNumber)  {
+
+        //     accountDifferece = accountSchellingNumber - accountCurrentNumber;
+
+        //     // contractNumber = accountDifferece > cap ? 4 : 2;
+
+        //     // todo fix as it is hardcoded
+        //     contractNumber = paymentNumber;
+        //     inflow = contractNumber;
+
+        // } else {
+        //     // todo fix as it is hardcoded handle if no contract is deploy yet
+        //     revert( "Core: Schelling > CurrentNumber : Do commit via router");
+        // }
+
+    }
+
+    /**
+     * @dev only callable from child contract
+     */
     function commit_2ndPhase_Callback(
         address caller,
         address account,
@@ -168,23 +247,25 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         require(depositData.commitment == commitment, "Core: Wrong Commitment or Account");
         // still needed to prevent redundant hash from the same sender
         //  TODO another mechanism to prevent from redundant deposit
+        //  TODO ie must be 0.25 ether?
         require(depositData.committedAmount < denomination, "Core: Commited Amount already exceeded");
         require(depositData.account == account, "Core: Wrong Account");
 
+        // DepositData storage ownerToDepositData = ownerToDeposit[caller];
+
         // only callable by child account(  ie deployer must be factory - address(this))
-        // TODO check if we need to include denominatio
+        // TODO check if we need to include denomination
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), commitment, nonce);
         delete getPendingAccount[commitment][nonce];
         // pendingDeposit[caller] = commitment;
 
         depositData.committedAmount += amountIn;
+
         ownerToDeposit[caller].commitment = commitment;
         ownerToDeposit[caller].committedAmount += amountIn;
 
-        // ownerToDeposit[caller] = depositData;
-
-        // TODO Change to updateAcccount and test _addAccount(,0) and getTop for SortedList
+        // TODO Change to updateAcccount and test _updateBalance(,0) and getTop for SortedList
         _addAccount(account, amountIn);
 
         emit Commit(commitment, account, amountIn, block.timestamp);
@@ -213,9 +294,9 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
      * @dev let users update the current merkle root by providing a proof that they added `ownerToDeposit[msg.sender]` to the current merkle tree root `roots[currentRootIndex]` and verifying it onchain
      */
     function deposit(Proof calldata _proof, bytes32 newRoot) external {
-        DepositData memory depositData = ownerToDeposit[msg.sender];
-        bytes32 _pendingDeposit = depositData.commitment;
-        uint256 _committedAmount = depositData.committedAmount;
+        DepositData memory ownerToDepositData = ownerToDeposit[msg.sender];
+        bytes32 _pendingDeposit = ownerToDepositData.commitment;
+        uint256 _committedAmount = ownerToDepositData.committedAmount;
 
         require(_pendingDeposit != bytes32(0), "Core: Not Commited Yet");
         require(_committedAmount == denomination, "Core: Amount Commited Not Enough");
@@ -235,7 +316,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
             "Core: Invalid deposit proof"
         );
 
-        delete pendingDeposit[depositData.account];
+        delete pendingDeposit[ownerToDepositData.account];
         delete ownerToDeposit[msg.sender];
 
         uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
@@ -244,6 +325,8 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
         roots[newCurrentRootIndex] = newRoot;
         uint256 _nextIndex = nextIndex;
+
+        // todo  move addAccount to this block
 
         nextIndex += 1;
         emit Insert(_pendingDeposit, _nextIndex, block.timestamp);
@@ -308,7 +391,6 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
             // todo add rule to use whether getBottom() or getTop()
             // todo  _updateAccount
 
-        // todo add withdraw callback
         IAccount(accountToWithdraw).withdraw_callback(address(this), _recipient, amountOut);
        
     }

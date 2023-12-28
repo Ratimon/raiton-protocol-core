@@ -66,6 +66,8 @@ contract SharedHarness is Test {
         assertEq(core.getPendingAccount(commitment, deployReturns[2].nonce), deployReturns[2].account);
         assertEq(core.getPendingAccount(commitment, deployReturns[3].nonce), deployReturns[3].account);
 
+        // todo: add assertion for pendingDeposit
+
         vm.stopPrank();
     }
 

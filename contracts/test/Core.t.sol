@@ -40,7 +40,8 @@ contract CoreTest is SharedHarness {
 
         // It is single premium just needs to abstract four payments into single one via router
         // to do fix amount
-        // //todo: assert emit
+        // todo: assert emit
+        // todo: check why denomination =  1 ether?, it must be 0.25 ether?
         commitAndAssertCore(alice, deployReturns[0].account, commitment, 0, denomination);
         commitAndAssertCore(alice, deployReturns[1].account, commitment, 1, denomination);
         commitAndAssertCore(alice, deployReturns[2].account, commitment, 2, denomination);
@@ -61,8 +62,8 @@ contract CoreTest is SharedHarness {
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
-
         address account = commitAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, denomination);
+
         clearAndAssertCore(alice, account, bob, denomination);
 
         vm.expectRevert(bytes("SortedList: k must be > than list size"));
@@ -77,8 +78,8 @@ contract CoreTest is SharedHarness {
         bytes32[] memory existingCommitments = new bytes32[](0);
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
-
         commitAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, denomination);
+
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
     }
     
