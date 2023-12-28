@@ -16,7 +16,7 @@ contract SortedList {
     /**
      * @notice find the right place, between balances of previous and next accounts, then insert the new account
      */
-    function _addAccount(address account, uint256 balance) internal {
+    function _addAccount(address account, uint256 balance) internal virtual {
         require(_nextAccounts[account] == address(0));
         address index = _findIndex(balance);
         balances[account] = balance;
@@ -31,7 +31,7 @@ contract SortedList {
         listSize++;
     }
 
-    function _removeAccount(address account) internal {
+    function _removeAccount(address account) internal virtual {
         require(_nextAccounts[account] != address(0));
         address prevAccount = _findPrevAccount(account);
         _nextAccounts[prevAccount] = _nextAccounts[account];

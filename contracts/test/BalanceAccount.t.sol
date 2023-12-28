@@ -37,7 +37,7 @@ contract BalanceAccountTest is SharedHarness {
         vm.stopPrank();
     }
 
-    function test_commit_2ndPhase() external {
+    function test_commitNew_2ndPhase() external {
 
         uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
         startHoax(alice, committedAmount);
@@ -48,13 +48,13 @@ contract BalanceAccountTest is SharedHarness {
         BalanceAccount balanceAccount = BalanceAccount(accounts[0]);
 
         assertEq(address(balanceAccount).balance, 0 ether);
-        assertEq(uint256(balanceAccount.currentStatus()), uint256(BalanceAccount.Status.UNCOMMITED));
+        assertEq(uint256(balanceAccount.currentStatus()), uint256(BalanceAccount.Status.UNCOMMITTED));
         assertEq(balanceAccount.currentBalance(), 0 ether);
 
-        balanceAccount.commit_2ndPhase{value: committedAmount}();
+        balanceAccount.commitNew_2ndPhase{value: committedAmount}();
 
         assertEq(address(balanceAccount).balance, committedAmount);
-        assertEq(uint256(balanceAccount.currentStatus()), uint256(BalanceAccount.Status.COMMITED));
+        assertEq(uint256(balanceAccount.currentStatus()), uint256(BalanceAccount.Status.COMMITTED));
         assertEq(balanceAccount.currentBalance(), committedAmount);
 
         vm.stopPrank();
@@ -69,18 +69,18 @@ contract BalanceAccountTest is SharedHarness {
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
 
         BalanceAccount balanceAccount = BalanceAccount(accounts[0]);
-        balanceAccount.commit_2ndPhase{value: committedAmount}();
+        balanceAccount.commitNew_2ndPhase{value: committedAmount}();
 
         assertEq(address(balanceAccount).balance, committedAmount);
         assertEq(alice.balance, 0 ether);
-        assertEq(uint256(balanceAccount.currentStatus()), uint256(BalanceAccount.Status.COMMITED));
+        assertEq(uint256(balanceAccount.currentStatus()), uint256(BalanceAccount.Status.COMMITTED));
         assertEq(balanceAccount.currentBalance(), committedAmount);
 
         balanceAccount.clear_commitment(payable(alice));
 
         assertEq(address(balanceAccount).balance, 0 ether);
         assertEq(alice.balance, committedAmount);
-        assertEq(uint256(balanceAccount.currentStatus()), uint256(BalanceAccount.Status.UNCOMMITED));
+        assertEq(uint256(balanceAccount.currentStatus()), uint256(BalanceAccount.Status.UNCOMMITTED));
         assertEq(balanceAccount.currentBalance(), 0 ether);
 
         vm.stopPrank();

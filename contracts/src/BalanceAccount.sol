@@ -17,12 +17,12 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
  */
 contract BalanceAccount {
     enum Status {
-        UNCOMMITED,
-        COMMITED,
+        UNCOMMITTED,
+        COMMITTED,
         TERMINATED
     }
 
-    Status public currentStatus = Status.UNCOMMITED;
+    Status public currentStatus = Status.UNCOMMITTED;
 
     //call relevant states from factory which store merkle roots
     /**
@@ -57,29 +57,37 @@ contract BalanceAccount {
         _;
     }
 
-    // add deposit to another "balanceAccount"
+     /**
+     * @dev add deposit to another "balanceAccount", callable from router
+     */
+    function commitExisting_2ndPhase() external payable inStatus(Status.COMMITTED) returns (bytes32) {
 
-    function commit_2ndPhase() external payable inStatus(Status.UNCOMMITED) returns (bytes32) {
+        // address router;
+        // require(msg.sender == router, "BalanceAccount:  only callable from router ");
+
+    }
+
+    function commitNew_2ndPhase() external payable inStatus(Status.UNCOMMITTED) returns (uint256) {
         //TODO handle ERC20 case
         uint256 amountIn = denomination / cashInflows; // 1 ether/4 = 0.25 ether
         // uint256 amountIn = denomination/cashOutflows; // 1 ether/4 = 0.25 ether
         require(msg.value == amountIn, "BalanceAccount: Incorrect amountIn");
 
         // pendingCommit[msg.sender] = _commitment;
-        currentStatus = Status.COMMITED;
+        currentStatus = Status.COMMITTED;
         currentBalance += amountIn;
         _processDeposit();
-        IPoolsCounterBalancer(factory).commit_2ndPhase_Callback(msg.sender, address(this), commitment, nonce, amountIn);
+        IPoolsCounterBalancer(factory).commitNew_2ndPhase_Callback(msg.sender, address(this), commitment, nonce, amountIn);
 
-        return commitment;
+        return amountIn;
     }
 
     // TODO adding param `to` as receiver address
-    function clear_commitment(address payable to) external inStatus(Status.COMMITED) {
+    function clear_commitment(address payable to) external inStatus(Status.COMMITTED) {
         // require(pendingCommit[msg.sender].commitment != bytes32(0), "not committed");
         // uint256 denomination = pendingCommit[msg.sender].denomination;
         // delete pendingCommit[msg.sender];
-        currentStatus = Status.UNCOMMITED;
+        currentStatus = Status.UNCOMMITTED;
         uint256 amountOut = denomination / cashInflows; // 1 ether/
         currentBalance -= amountOut;
         // TODO deal with precision

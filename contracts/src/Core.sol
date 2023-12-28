@@ -187,11 +187,12 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
      * @dev add depositData to already deployed account (pendingDeposit) called by router
      */
 
-    function getAccountToCommit() external view returns (address) {
+    function lowestAccountToCommit() external view returns (address) {
        
 
         // TODO require accountCurrentNumber > accountSchellingNumber)
 
+        require( accountCurrentNumber > 0, "Core: Schelling > No Account added");
         require(accountCurrentNumber > accountSchellingNumber, "Core: Schelling > CurrentNumber : Do commit via router");
 
         // TODO require have account state (sorted list)
@@ -218,7 +219,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     /**
      * @dev only callable from child contract
      */
-    function commit_2ndPhase_Callback(
+    function commitNew_2ndPhase_Callback(
         address caller,
         address account,
         bytes32 commitment,
@@ -380,6 +381,16 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
         IAccount(accountToWithdraw).withdraw_callback(address(this), _recipient, amountOut);
        
+    }
+
+    function _addAccount(address account, uint256 balance) internal override {
+        super._addAccount(account, balance);
+        accountCurrentNumber++;
+    }
+
+    function _removeAccount(address account) internal override {
+        super._removeAccount(account);
+        accountCurrentNumber--;
     }
 
     function getPendingCommitment(address account) external view returns (bytes32) {

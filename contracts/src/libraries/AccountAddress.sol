@@ -3,7 +3,7 @@ pragma solidity =0.8.20;
 
 library BalanceAccountAddress {
     bytes32 internal constant ACCOUNT_INIT_CODE_HASH =
-        hex"5799abb12735592cef6783a0fa3a81513bbe251e488c3d3ac635f5c3e556417e";
+        hex"cd87d0b2fd5402522068ae20b73a68512f4e89b213ed15c78bf1f6f7b878787c";
 
     // TODO will separe between annuity and endowmwnt later
     function computeAddress(address factory, bytes32 commitment, uint256 nonce)
