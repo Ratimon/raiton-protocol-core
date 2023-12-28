@@ -22,16 +22,17 @@ contract BalanceAccountTest is SharedHarness {
     function test_new_BalanceAccount() external {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
+        uint256 inflow = 4;
+        uint256 outflow = 1;
         (bytes32 commitment,,) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
 
-        // todo abstract this
-        assertAccount(alice, deployReturns[0].account, commitment, deployReturns[0].nonce , denomination);
-        assertAccount(bob, deployReturns[1].account, commitment, deployReturns[1].nonce, denomination);
-        assertAccount(carol, deployReturns[2].account, commitment, deployReturns[2].nonce, denomination);
-        assertAccount(dave, deployReturns[3].account, commitment, deployReturns[3].nonce, denomination);
+        assertAccount(alice, deployReturns[0].account, commitment, denomination, deployReturns[0].nonce, inflow, outflow);
+        assertAccount(bob, deployReturns[1].account, commitment, denomination, deployReturns[1].nonce, inflow, outflow);
+        assertAccount(carol, deployReturns[2].account, commitment, denomination, deployReturns[2].nonce, inflow, outflow);
+        assertAccount(dave, deployReturns[3].account, commitment, denomination, deployReturns[3].nonce, inflow, outflow);
 
         vm.stopPrank();
     }

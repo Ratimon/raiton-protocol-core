@@ -71,15 +71,15 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
-    function assertAccount(address user, address account, bytes32 commitment, uint256 nonce, uint256 amount) internal {
+    function assertAccount(address user, address account, bytes32 commitment, uint256 amount, uint256 nonce , uint256 inflow, uint256 outflow) internal {
         vm.startPrank(user);
 
         IAccount balanceAccount = IAccount(account);
 
         assertEq32(balanceAccount.commitment(), commitment);
         assertEq(balanceAccount.denomination(), amount);
-        assertEq(balanceAccount.cashInflows(), 4);
-        assertEq(balanceAccount.cashOutflows(), 1);
+        assertEq(balanceAccount.cashInflows(), inflow);
+        assertEq(balanceAccount.cashOutflows(), outflow);
         assertEq(balanceAccount.nonce(), nonce);
 
         vm.stopPrank();
