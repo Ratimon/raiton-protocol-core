@@ -61,7 +61,7 @@ contract BalanceAccount {
 
     function commit_2ndPhase() external payable inStatus(Status.UNCOMMITED) returns (bytes32) {
         //TODO handle ERC20 case
-        uint256 amountIn = denomination / cashInflows; // 1 ether/
+        uint256 amountIn = denomination / cashInflows; // 1 ether/4 = 0.25 ether
         // uint256 amountIn = denomination/cashOutflows; // 1 ether/4 = 0.25 ether
         require(msg.value == amountIn, "Incorrect amountIn");
 
@@ -83,7 +83,7 @@ contract BalanceAccount {
         uint256 amountOut = denomination / cashInflows; // 1 ether/
         currentBalance -= amountOut;
         // TODO deal with precision
-        _processWithdraw(to, denomination);
+        _processWithdraw(to, amountOut);
 
         IPoolsCounterBalancer(factory).clear_commitment_Callback(msg.sender, address(this), nonce);
     }

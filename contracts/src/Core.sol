@@ -125,7 +125,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         require(commitment != bytes32(0), "Core: Invalid commitment");
         // require(pendingDeposit[msg.sender].commitment == bytes32(0), "Core: Already Deployed");
 
-        // TODO : add require when accountCurrentNumber < accountSchellingNumber
+        require(accountCurrentNumber <= accountSchellingNumber, "Core: Account already exceeds");
 
 
         // TODO : the loop number will depends on the schelling point
@@ -148,28 +148,11 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         // 1) endowment: 4 contracts -(outflow = 1) each of 0.25 -equal 4 payment of 0.25 ether for 4 contracts
 
         uint256 contractNumber;
-        uint256 accountDifferece;
         // TODO hardcoded fix it
         // uint256 cap = 2;
 
-        uint256 inflow;
-        
-        if( accountCurrentNumber < accountSchellingNumber)  {
-
-            accountDifferece = accountSchellingNumber - accountCurrentNumber;
-
-            // contractNumber = accountDifferece > cap ? 4 : 2;
-
-            // todo fix as it is hardcoded
-            contractNumber = paymentNumber;
-            inflow = contractNumber;
-
-        } else {
-            // todo fix as it is hardcoded handle if no contract is deploy yet
-            revert( "Core: Schelling > CurrentNumber : Do commit via router");
-
-        }
-
+        // todo fix as it is hardcoded
+        contractNumber = paymentNumber;
 
         accounts = new address[](contractNumber);
 
@@ -179,7 +162,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
             // TODO : now hardcoded inflow and outflow as 1 and paymentNumber respectively
             // TODO : denomination should be 1 / 4 ?
             // case 1  : denomination should be 1 / 4 ?
-            address account = deploy(address(this), commitment, denomination, 1, paymentNumber, i);
+            address account = deploy(address(this), commitment, denomination, paymentNumber, 1 , i);
             // address account = deploy(address(this), commitment, denomination, contractNumber, 4, i);
             require(getPendingAccount[commitment][i] == address(0), "Core: Account Already Created");
 
@@ -207,6 +190,9 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
        
 
         // TODO require accountCurrentNumber > accountSchellingNumber)
+
+        require(accountCurrentNumber > accountSchellingNumber, "Core: Schelling > CurrentNumber : Do commit via router");
+
         // TODO require have account state (sorted list)
         // TODO connect with router
         // TODO draft with below comment

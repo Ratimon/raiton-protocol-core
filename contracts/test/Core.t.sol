@@ -33,6 +33,7 @@ contract CoreTest is SharedHarness {
     function test_commit_2ndPhase_Callback() external {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
+        uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
         (bytes32 commitment,,) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
@@ -42,10 +43,10 @@ contract CoreTest is SharedHarness {
         // to do fix amount
         // todo: assert emit
         // todo: check why denomination =  1 ether?, it must be 0.25 ether?
-        commitAndAssertCore(alice, deployReturns[0].account, commitment, 0, denomination);
-        commitAndAssertCore(alice, deployReturns[1].account, commitment, 1, denomination);
-        commitAndAssertCore(alice, deployReturns[2].account, commitment, 2, denomination);
-        commitAndAssertCore(alice, deployReturns[3].account, commitment, 3, denomination);
+        commitAndAssertCore(alice, deployReturns[0].account, commitment, 0, committedAmount);
+        commitAndAssertCore(alice, deployReturns[1].account, commitment, 1, committedAmount);
+        commitAndAssertCore(alice, deployReturns[2].account, commitment, 2, committedAmount);
+        commitAndAssertCore(alice, deployReturns[3].account, commitment, 3, committedAmount);
 
         address[] memory topAccounts = core.getTop(2);
         assertEq(topAccounts[0], deployReturns[0].account);
@@ -58,13 +59,14 @@ contract CoreTest is SharedHarness {
     function test_clear_commitment_Callback() external {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
+        uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
         (bytes32 commitment,,) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
-        address account = commitAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, denomination);
+        address account = commitAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
 
-        clearAndAssertCore(alice, account, bob, denomination);
+        clearAndAssertCore(alice, account, bob, committedAmount);
 
         vm.expectRevert(bytes("SortedList: k must be > than list size"));
         core.getTop(2);
@@ -73,12 +75,16 @@ contract CoreTest is SharedHarness {
     function test_deposit() external {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
+        uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
         (bytes32 commitment,, bytes32 nullifier) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
         bytes32[] memory existingCommitments = new bytes32[](0);
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
-        commitAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, denomination);
+        commitAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
+        commitAndAssertCore(alice, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount);
+        commitAndAssertCore(alice, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount);
+        commitAndAssertCore(alice, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
 
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
     }
@@ -88,6 +94,7 @@ contract CoreTest is SharedHarness {
 
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
+        uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
         uint256 fee = 0 ether;
 
         //TODO refactor to harness
@@ -96,7 +103,10 @@ contract CoreTest is SharedHarness {
         bytes32[] memory existingCommitments = new bytes32[](0);
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
-        commitAndAssertCore(alice, deployReturns[0].account , commitment, deployReturns[0].nonce, denomination);
+        commitAndAssertCore(alice, deployReturns[0].account , commitment, deployReturns[0].nonce, committedAmount);
+        commitAndAssertCore(alice, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount);
+        commitAndAssertCore(alice, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount);
+        commitAndAssertCore(alice, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
         bytes32[] memory pushedCommitments = depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
 
         uint256 nextLeafIndex = 1;

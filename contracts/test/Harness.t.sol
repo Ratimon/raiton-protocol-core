@@ -78,8 +78,8 @@ contract SharedHarness is Test {
 
         assertEq32(balanceAccount.commitment(), commitment);
         assertEq(balanceAccount.denomination(), amount);
-        assertEq(balanceAccount.cashInflows(), 1);
-        assertEq(balanceAccount.cashOutflows(), 4);
+        assertEq(balanceAccount.cashInflows(), 4);
+        assertEq(balanceAccount.cashOutflows(), 1);
         assertEq(balanceAccount.nonce(), nonce);
 
         vm.stopPrank();
