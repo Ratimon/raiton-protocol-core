@@ -53,7 +53,7 @@ contract BalanceAccount {
     }
 
     modifier inStatus(Status status) {
-        require(status == currentStatus, "current status does not allow");
+        require(status == currentStatus, "BalanceAccount: Current Status does't allow");
         _;
     }
 
@@ -63,7 +63,7 @@ contract BalanceAccount {
         //TODO handle ERC20 case
         uint256 amountIn = denomination / cashInflows; // 1 ether/4 = 0.25 ether
         // uint256 amountIn = denomination/cashOutflows; // 1 ether/4 = 0.25 ether
-        require(msg.value == amountIn, "Incorrect amountIn");
+        require(msg.value == amountIn, "BalanceAccount: Incorrect amountIn");
 
         // pendingCommit[msg.sender] = _commitment;
         currentStatus = Status.COMMITED;
@@ -89,7 +89,7 @@ contract BalanceAccount {
     }
 
     function withdraw_callback(address caller, address payable to, uint256 amountOut) external {
-        require(caller == factory, "caller is not factory");
+        require(caller == factory, "BalanceAccount: Caller is not factory");
         _processWithdraw(to, amountOut);
     }
 

@@ -152,6 +152,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         // uint256 cap = 2;
 
         // todo fix as it is hardcoded
+        // for different tyoe of annuity
         contractNumber = paymentNumber;
 
         accounts = new address[](contractNumber);
