@@ -107,8 +107,7 @@ contract BalanceAccount {
         // uint256 denomination = pendingCommit[msg.sender].denomination;
         // delete pendingCommit[msg.sender];
         currentStatus = Status.UNCOMMITTED;
-        // TODO fix when dealing existing Commit
-        uint256 amountOut = denomination / cashInflows; // 1 ether/
+        uint256 amountOut = currentBalance;
         currentBalance -= amountOut;
         // TODO deal with precision
         _processWithdraw(to, amountOut);

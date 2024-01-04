@@ -155,6 +155,7 @@ contract CoreTest is SharedHarness {
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
 
         //todo add more commit
+        
 
 
     }
