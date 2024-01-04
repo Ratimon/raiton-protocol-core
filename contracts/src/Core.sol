@@ -37,7 +37,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
     // add a redeployable stateless router to query the address
 
     uint256 public accountCurrentNumber = 0;
-    uint256 public accountSchellingNumber = 4;
+    uint256 public accountSchellingNumber = 1;
     uint256 public accountNumberCumulativeLast;
 
     uint256 public contractBirthRate = 4;
@@ -48,7 +48,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
     // TODO ? adding new struct of Accountkey
     // TODO ? add getter to get address then connect with router, so we can commit via account
-    mapping(bytes32 => mapping(uint256 => address)) public getPendingAccount;
+    mapping(bytes32 => mapping(uint256 => address)) public getPendingAccountToCommit;
 
     // Deposit Side:
     mapping(address => DepositData) private pendingDeposit;
@@ -170,11 +170,11 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
             // case 1  : denomination should be 1 / 4 ?
             address account = deploy(address(this), commitment, denomination, paymentNumber, 1 , i);
             // address account = deploy(address(this), commitment, denomination, contractNumber, 4, i);
-            require(getPendingAccount[commitment][i] == address(0), "Core: Account Already Created");
+            require(getPendingAccountToCommit[commitment][i] == address(0), "Core: Account Already Created");
 
-            // TODO : do some optimization to query balanceAccount address? like mapping address to getPendingAccount
+            // TODO : do some optimization to query balanceAccount address? like mapping address to getPendingAccountToCommit
             // TODO : like getAccountTOCommit(commitment)
-            getPendingAccount[commitment][i] = account;
+            getPendingAccountToCommit[commitment][i] = account;
 
             DepositData storage depositData = pendingDeposit[account];
             depositData.commitment = commitment;
@@ -202,6 +202,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
         // ??
         require(commitment != bytes32(0), "Core: Invalid commitment");
+        require( accountCurrentNumber < accountSchellingNumber, "Core: Schelling < CurrentNumber : Do commit via router");
 
         DepositData storage depositData = pendingDeposit[account];
         // TODO check again
@@ -219,7 +220,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         // TODO check if we need to include denomination
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), commitment, nonce);
-        delete getPendingAccount[commitment][nonce];
+        delete getPendingAccountToCommit[commitment][nonce];
         // pendingDeposit[caller] = commitment;
 
         depositData.committedAmount += amountIn;
@@ -247,7 +248,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         uint256 amountIn
     ) external payable override {
 
-        require(account == getBottom(), "Core: Only callable from bottom account");
+        require(account == getBottomAccount(), "Core: Only callable from bottom account");
 
         require(uint256(existingCommitment) < FIELD_SIZE, "Core: Commitment Out of Range");
         require(existingCommitment != bytes32(0), "Core: Invalid commitment");
@@ -255,7 +256,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         require(newCommitment != bytes32(0), "Core: Invalid commitment");
 
         require( accountCurrentNumber > 0, "Core: Schelling > No Account added");
-        require(accountCurrentNumber > accountSchellingNumber, "Core: Schelling > CurrentNumber : Do commit via router");
+        require( accountCurrentNumber >= accountSchellingNumber, "Core: Schelling >= CurrentNumber : Do commit via router");
 
         // TODO Remove this block? as we  may only need `ownerToDeposit`
         DepositData storage depositData = pendingDeposit[account];
@@ -309,10 +310,10 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
      */
     function deposit(Proof calldata _proof, bytes32 newRoot) external {
         DepositData memory ownerToDepositData = ownerToDeposit[msg.sender];
-        bytes32 _pendingDeposit = ownerToDepositData.commitment;
+        bytes32 _pendingCommitment = ownerToDepositData.commitment;
         uint256 _committedAmount = ownerToDepositData.committedAmount;
 
-        require(_pendingDeposit != bytes32(0), "Core: Not Commited Yet");
+        require(_pendingCommitment != bytes32(0), "Core: Not Commited Yet");
         require(_committedAmount == denomination, "Core: Amount Commited Not Enough");
 
         uint256 _currentRootIndex = currentRootIndex;
@@ -325,7 +326,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
                 _proof.a,
                 _proof.b,
                 _proof.c,
-                [uint256(roots[_currentRootIndex]), uint256(_pendingDeposit), _committedAmount, uint256(newRoot)]
+                [uint256(roots[_currentRootIndex]), uint256(_pendingCommitment), _committedAmount, uint256(newRoot)]
             ),
             "Core: Invalid deposit proof"
         );
@@ -333,7 +334,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         delete pendingDeposit[ownerToDepositData.account];
         delete ownerToDeposit[msg.sender];
 
-        submittiedCommitments[_pendingDeposit] = true;
+        submittiedCommitments[_pendingCommitment] = true;
 
         uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
 
@@ -346,9 +347,12 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         _addAccount(ownerToDepositData.account, _committedAmount);
 
         nextIndex += 1;
-        emit Insert(_pendingDeposit, _nextIndex, block.timestamp);
+        emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
     }
 
+    /**
+     * @dev let users make withdrawals where a note (commitment hash) is consumed and the change is redeposited into a new leaf node which the withdrawer is assumed to know the preimage of the commitment hash of.
+     */
     function withdraw(
         Proof calldata _proof,
         bytes32 _root,
@@ -402,12 +406,12 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         uint256 _nextIndex = nextIndex;
         nextIndex += 1;
 
-        // todo add rule to use whether getBottom() or getTop()
-        address accountToWithdraw = getBottom();
+        // todo add rule to use whether getBottomAccount() or getTop()
+        address accountToWithdraw = getBottomAccount();
 
         if ( accountToWithdraw.balance == amountOut )
             _removeAccount(accountToWithdraw);
-            // todo add rule to use whether getBottom() or getTop()
+            // todo add rule to use whether getBottomAccount() or getTop()
             // todo  _updateAccount
 
         IAccount(payable(accountToWithdraw)).withdraw_callback(address(this), _recipient, amountOut);
@@ -424,29 +428,29 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         accountCurrentNumber--;
     }
 
-    function getBottom() public view override (IPoolsCounterBalancer, SortedList ) returns (address) {
-        return super.getBottom();
+    function getBottomAccount() public view override (IPoolsCounterBalancer, SortedList ) returns (address) {
+        return super.getBottomAccount();
     }
 
     function getCurrentAmountIn() external view returns (uint256) {
         return denomination;
     }
 
-    function getPendingCommitment(address account) external view returns (bytes32) {
+    function getPendingCommitmentToDeposit(address account) external view returns (bytes32) {
         return pendingDeposit[account].commitment;
     }
 
-    function getPendingCommittedAmount(address account) external view returns (uint256) {
+    function getPendingCommittedAmountToDeposit(address account) external view returns (uint256) {
         return pendingDeposit[account].committedAmount;
     }
 
     //todo add assertion
-    function getPendingBalanceAccount(address account) external view returns (address) {
+    function getPendingAccountToDeposit(address account) external view returns (address) {
         return pendingDeposit[account].account;
     }
 
      //todo add assertion
-    function getOwnerCommitment(bytes32 commitment) external view returns (bool) {
+    function getSubmittiedCommitment(bytes32 commitment) external view returns (bool) {
         return submittiedCommitments[commitment];
     }
 

@@ -77,7 +77,7 @@ contract SortedList {
     }
 
     //todo revert if no account?
-    function getBottom() public view virtual returns (address) {
+    function getBottomAccount() public view virtual returns (address) {
         return lowestAccount;
     }
 

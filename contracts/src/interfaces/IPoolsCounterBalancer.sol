@@ -25,5 +25,5 @@ interface IPoolsCounterBalancer {
 
     function getCurrentAmountIn() external returns (uint256);
 
-    function getBottom() external view returns (address);
+    function getBottomAccount() external view returns (address);
 }

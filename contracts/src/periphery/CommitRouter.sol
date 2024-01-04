@@ -22,16 +22,18 @@ contract Router {
         return IPoolsCounterBalancer(factory);
     }
 
-    function getBottomAccount() private view returns (IAccount) {
-        return IAccount(IPoolsCounterBalancer(factory).getBottom());
+    function getBottomAccountToCommit() private view returns (IAccount) {
+        return IAccount(IPoolsCounterBalancer(factory).getBottomAccount());
     }
+
+    //todo commitNew to aggregate 4 commits(new)
 
 
     function commitExisting( bytes32 newCommmitment) external payable {
         //todo sanity check for  _commmitment
 
         // ICore core = getCore();
-        IAccount bottomAccount = getBottomAccount();
+        IAccount bottomAccount = getBottomAccountToCommit();
 
         //todo define invariant
 

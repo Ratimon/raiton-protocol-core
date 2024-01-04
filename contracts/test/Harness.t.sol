@@ -61,10 +61,10 @@ contract SharedHarness is Test {
             deployReturns[i] = DeployReturnStruct(accounts[i], account.nonce());
         }
 
-        assertEq(core.getPendingAccount(commitment, deployReturns[0].nonce), deployReturns[0].account);
-        assertEq(core.getPendingAccount(commitment, deployReturns[1].nonce), deployReturns[1].account);
-        assertEq(core.getPendingAccount(commitment, deployReturns[2].nonce), deployReturns[2].account);
-        assertEq(core.getPendingAccount(commitment, deployReturns[3].nonce), deployReturns[3].account);
+        assertEq(core.getPendingAccountToCommit(commitment, deployReturns[0].nonce), deployReturns[0].account);
+        assertEq(core.getPendingAccountToCommit(commitment, deployReturns[1].nonce), deployReturns[1].account);
+        assertEq(core.getPendingAccountToCommit(commitment, deployReturns[2].nonce), deployReturns[2].account);
+        assertEq(core.getPendingAccountToCommit(commitment, deployReturns[3].nonce), deployReturns[3].account);
 
         // todo: add assertion for pendingDeposit
 
@@ -91,19 +91,19 @@ contract SharedHarness is Test {
     {
         startHoax(user, amount);
 
-        assertEq(core.getPendingAccount(commitment, nonce), account);
-        assertEq(core.getPendingCommitment(account), commitment);
+        assertEq(core.getPendingAccountToCommit(commitment, nonce), account);
+        assertEq(core.getPendingCommitmentToDeposit(account), commitment);
 
-        uint256 prePendingCommittedAmount = core.getPendingCommittedAmount(account);
+        uint256 prePendingCommittedAmount = core.getPendingCommittedAmountToDeposit(account);
         uint256 preOwnerCommittedAmount = core.getOwnerCommittedAmount(user);
 
         uint256 returningAmount = IAccount(account).commitNew_2ndPhase{value: amount}();
         assertEq(returningAmount, amount);
 
-        assertEq(core.getPendingAccount(commitment, nonce), address(0));
+        assertEq(core.getPendingAccountToCommit(commitment, nonce), address(0));
 
-        assertEq(core.getPendingCommitment(account), commitment);
-        assertEq(core.getPendingCommittedAmount(account), prePendingCommittedAmount + amount);
+        assertEq(core.getPendingCommitmentToDeposit(account), commitment);
+        assertEq(core.getPendingCommittedAmountToDeposit(account), prePendingCommittedAmount + amount);
 
         assertEq(core.getOwnerCommitment(user), commitment);
         assertEq(core.getOwnerCommittedAmount(user), preOwnerCommittedAmount + amount);
@@ -113,11 +113,40 @@ contract SharedHarness is Test {
         return account;
     }
 
+    function commitExistingAndAssertCore(address user, bytes32 newCommitment)
+        internal
+        returns (address)
+    {
+        address bottomAccount = core.getBottomAccount();
+        uint256 amountToCommit = core.getCurrentAmountIn();
+
+
+        startHoax(user, amountToCommit);
+
+        assertEq(core.getPendingCommitmentToDeposit(bottomAccount), bytes32(0));
+
+        uint256 prePendingCommittedAmount = core.getPendingCommittedAmountToDeposit(bottomAccount);
+        uint256 preOwnerCommittedAmount = core.getOwnerCommittedAmount(user);
+
+        uint256 returningAmount = IAccount(bottomAccount).commitExisting_2ndPhase{value: amountToCommit}(alice, newCommitment);
+        assertEq(returningAmount, amountToCommit);
+
+        assertEq(core.getPendingCommitmentToDeposit(bottomAccount), newCommitment);
+        assertEq(core.getPendingCommittedAmountToDeposit(bottomAccount), prePendingCommittedAmount + amountToCommit);
+
+        assertEq(core.getOwnerCommitment(user), newCommitment);
+        assertEq(core.getOwnerCommittedAmount(user), preOwnerCommittedAmount + amountToCommit);
+
+        vm.stopPrank();
+
+        return bottomAccount;
+    }
+
     function clearAndAssertCore(address user, address account, address to, uint256 amount) internal {
         vm.startPrank(user);
 
-        assertTrue(core.getPendingCommitment(account) != bytes32(0));
-        assertTrue(core.getPendingCommittedAmount(account) != 0);
+        assertTrue(core.getPendingCommitmentToDeposit(account) != bytes32(0));
+        assertTrue(core.getPendingCommittedAmountToDeposit(account) != 0);
 
         assertTrue(core.getOwnerCommitment(user) != bytes32(0));
         assertTrue(core.getOwnerCommittedAmount(user) != 0);
@@ -127,8 +156,8 @@ contract SharedHarness is Test {
         IAccount balanceAccount = IAccount(account);
         balanceAccount.clear_commitment(payable(to));
 
-        assertEq(core.getPendingCommitment(account), bytes32(0));
-        assertEq(core.getPendingCommittedAmount(account), 0);
+        assertEq(core.getPendingCommitmentToDeposit(account), bytes32(0));
+        assertEq(core.getPendingCommittedAmountToDeposit(account), 0);
 
         assertEq(core.getOwnerCommitment(user), bytes32(0));
         assertEq(core.getOwnerCommittedAmount(user), 0);
@@ -232,7 +261,7 @@ contract SharedHarness is Test {
                         partialWithdrawStruct.newNullifier, // new nullifier
                         partialWithdrawStruct.nullifierHash,
                         partialWithdrawStruct.commitment, // new commitment
-                        partialWithdrawStruct.denomination,
+                        partialWithdrawStruct.denomination, // amount = denomination
                         partialWithdrawStruct.user, //recipient
                         (partialWithdrawStruct.denomination / core.paymentNumber()), // amount = denomination / payment number
                         // partialWithdrawStruct.denomination, // amount = denomination / payment number

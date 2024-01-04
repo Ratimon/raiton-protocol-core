@@ -7,9 +7,9 @@ interface ICore {
 
     // function getCurrentAmountIn() external returns (uint256);
 
-    function getPendingCommitment(address account) external returns (bytes32);
+    function getPendingCommitmentToDeposit(address account) external returns (bytes32);
 
-    function getPendingCommittedAmount(address account) external view returns (uint256);
+    function getPendingCommittedAmountToDeposit(address account) external view returns (uint256);
 
     function getOwnerCommitment(address account) external view returns (bytes32);
 
@@ -19,7 +19,7 @@ interface ICore {
 
     function getIsNullified(bytes32 nullifierHash) external view returns (bool);
 
-    // function getBottom() external view returns (address);
+    // function getBottomAccount() external view returns (address);
 
     // function stats() external view returns (uint256 averageLiquidityCoverageRatio, uint256 totalAccountTurnOver);
 }

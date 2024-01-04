@@ -60,7 +60,7 @@ contract SortedListTest is Test {
         assertEq(accounts[2], bob);
         assertEq(accounts[3], alice);
 
-        address lowestAccount = list.getBottom();
+        address lowestAccount = list.getBottomAccount();
         assertEq(lowestAccount, alice);
 
         vm.stopPrank();
@@ -82,7 +82,7 @@ contract SortedListTest is Test {
         assertEq(accounts[0], dave);
         assertEq(accounts[1], bob);
 
-        address lowestAccount = list.getBottom();
+        address lowestAccount = list.getBottomAccount();
         assertEq(lowestAccount, bob);
 
         vm.stopPrank();
@@ -97,7 +97,7 @@ contract SortedListTest is Test {
         vm.stopPrank();
     }
 
-    function test_getBottom() external {
+    function test_getBottomAccount() external {
         vm.startPrank(deployer);
 
         list.addAccount(alice, 1 ether);
@@ -105,7 +105,7 @@ contract SortedListTest is Test {
         list.addAccount(carol, 3 ether);
         list.addAccount(dave, 4 ether);
 
-        address lowestAccount = list.getBottom();
+        address lowestAccount = list.getBottomAccount();
         assertEq(lowestAccount, alice);
 
         vm.stopPrank();

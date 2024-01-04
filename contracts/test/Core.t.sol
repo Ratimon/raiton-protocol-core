@@ -54,7 +54,7 @@ contract CoreTest is SharedHarness {
         // assertEq(topAccounts[0], deployReturns[0].account);
         // assertEq(topAccounts[1], deployReturns[1].account);
 
-        // address lowestAccount = core.getBottom();
+        // address lowestAccount = core.getBottomAccount();
         // assertEq(lowestAccount, deployReturns[3].account);
     }
 
@@ -142,21 +142,25 @@ contract CoreTest is SharedHarness {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
         uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
-        (bytes32 commitment,, bytes32 nullifier) =
+        (bytes32 newCommitment,, bytes32 newNullifier) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
         bytes32[] memory existingCommitments = new bytes32[](0);
 
-        DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
-        commitNewAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
+        DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, newCommitment);
+        commitNewAndAssertCore(alice, deployReturns[0].account, newCommitment, deployReturns[0].nonce, committedAmount);
+        commitNewAndAssertCore(alice, deployReturns[1].account, newCommitment, deployReturns[1].nonce, committedAmount);
+        commitNewAndAssertCore(alice, deployReturns[2].account, newCommitment, deployReturns[2].nonce, committedAmount);
+        commitNewAndAssertCore(alice, deployReturns[3].account, newCommitment, deployReturns[3].nonce, committedAmount);
 
-        depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
+        depositAndAssertCore(alice, newLeafIndex, newNullifier, newCommitment, denomination, existingCommitments);
 
-        //todo add more commit
-        
+        (bytes32 nextCommitment,, ) =
+        abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
+        address committedAccount = commitExistingAndAssertCore(alice, nextCommitment);
+
+        address lowestAccount = core.getBottomAccount();
+        assertEq(lowestAccount, committedAccount);
 
     }
 
