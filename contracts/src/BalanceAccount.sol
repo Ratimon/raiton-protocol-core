@@ -30,13 +30,13 @@ contract BalanceAccount {
      */
     address public immutable factory;
 
-    bytes32 public immutable commitment;
+    bytes32 public commitment;
 
     // TODO  check if we need to store them
     uint256 public immutable denomination;
     uint256 public immutable cashInflows;
     uint256 public immutable cashOutflows;
-    uint256 public immutable nonce;
+    uint256 public nonce;
 
     // mapping(address => bytes32) pendingCommit;
 
@@ -60,10 +60,29 @@ contract BalanceAccount {
      /**
      * @dev add deposit to another "balanceAccount", callable from router
      */
-    function commitExisting_2ndPhase() external payable inStatus(Status.COMMITTED) returns (bytes32) {
+    function commitExisting_2ndPhase(address sender, bytes32 newCommmitment) external payable inStatus(Status.COMMITTED) returns (uint256) {
 
         // address router;
         // require(msg.sender == router, "BalanceAccount:  only callable from router ");
+
+        //TODO sanity check for amountIn;
+        IPoolsCounterBalancer core = IPoolsCounterBalancer(factory);
+        // denomination?
+        uint256 currentAmountIn = core.getCurrentAmountIn();
+
+        require(msg.value == currentAmountIn, "BalanceAccount: Incorrect amountIn");
+        currentBalance += currentAmountIn;
+        
+        bytes32 existingCommitment = commitment;
+        core.commitExisting_2ndPhase_Callback(sender, address(this), existingCommitment, newCommmitment, nonce, currentAmountIn);
+
+        // _updateparams();
+        commitment = newCommmitment;
+        nonce = 0;
+
+        _processDeposit();
+
+        return currentAmountIn;
 
     }
 
@@ -76,8 +95,8 @@ contract BalanceAccount {
         // pendingCommit[msg.sender] = _commitment;
         currentStatus = Status.COMMITTED;
         currentBalance += amountIn;
-        _processDeposit();
         IPoolsCounterBalancer(factory).commitNew_2ndPhase_Callback(msg.sender, address(this), commitment, nonce, amountIn);
+        _processDeposit();
 
         return amountIn;
     }
@@ -88,6 +107,7 @@ contract BalanceAccount {
         // uint256 denomination = pendingCommit[msg.sender].denomination;
         // delete pendingCommit[msg.sender];
         currentStatus = Status.UNCOMMITTED;
+        // TODO fix when dealing existing Commit
         uint256 amountOut = denomination / cashInflows; // 1 ether/
         currentBalance -= amountOut;
         // TODO deal with precision

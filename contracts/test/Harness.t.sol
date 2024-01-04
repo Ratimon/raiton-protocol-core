@@ -85,7 +85,7 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
-    function commitAndAssertCore(address user, address account, bytes32 commitment, uint256 nonce, uint256 amount)
+    function commitNewAndAssertCore(address user, address account, bytes32 commitment, uint256 nonce, uint256 amount)
         internal
         returns (address)
     {
@@ -235,6 +235,7 @@ contract SharedHarness is Test {
                         partialWithdrawStruct.denomination,
                         partialWithdrawStruct.user, //recipient
                         (partialWithdrawStruct.denomination / core.paymentNumber()), // amount = denomination / payment number
+                        // partialWithdrawStruct.denomination, // amount = denomination / payment number
                         relayer_signer,
                         partialWithdrawStruct.fee, // fee
                         partialWithdrawStruct.pushedCommitments

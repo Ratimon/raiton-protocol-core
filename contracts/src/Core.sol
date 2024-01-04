@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
+import {console} from "@forge-std/console.sol";
+
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {IAccount} from "@main/interfaces/IAccount.sol";
@@ -14,7 +16,7 @@ import {AccountDeployer} from "@main/AccountDeployer.sol";
 
 import {SortedList} from "@main/utils/SortedList.sol";
 
-contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDelegateCall {
+contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoDelegateCall {
     uint256 constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 constant ROOT_HISTORY_SIZE = 30;
 
@@ -40,6 +42,9 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     uint256 public accountSchellingNumber = 4;
     uint256 public accountNumberCumulativeLast;
 
+    uint256 public contractBirthRate = 4;
+    // uint256 public contractBirthRate = 0;
+
     uint256 public denomination;
     uint256 public paymentNumber;
 
@@ -50,6 +55,8 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     // Deposit Side:
     mapping(address => DepositData) private pendingDeposit;
     mapping(address => DepositData) public ownerToDeposit;
+    // TODO review another data field submittiedDeposit
+    mapping(bytes32 => bool) public submittiedCommitments;
 
     // Withdraw Side:
     mapping(bytes32 => WithdrawData) private nullifierHashToWithdraw;
@@ -183,38 +190,6 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         // return accounts;
     }
 
-    /**
-     * @dev add depositData to already deployed account (pendingDeposit) called by router
-     */
-
-    function lowestAccountToCommit() external view returns (address) {
-       
-
-        // TODO require accountCurrentNumber > accountSchellingNumber)
-
-        require( accountCurrentNumber > 0, "Core: Schelling > No Account added");
-        require(accountCurrentNumber > accountSchellingNumber, "Core: Schelling > CurrentNumber : Do commit via router");
-
-        // TODO require have account state (sorted list)
-        // TODO connect with router
-        // TODO draft with below comment
-                
-        // if( accountCurrentNumber < accountSchellingNumber)  {
-
-        //     accountDifferece = accountSchellingNumber - accountCurrentNumber;
-
-        //     // contractNumber = accountDifferece > cap ? 4 : 2;
-
-        //     // todo fix as it is hardcoded
-        //     contractNumber = paymentNumber;
-        //     inflow = contractNumber;
-
-        // } else {
-        //     // todo fix as it is hardcoded handle if no contract is deploy yet
-        //     revert( "Core: Schelling > CurrentNumber : Do commit via router");
-        // }
-
-    }
 
     /**
      * @dev only callable from child contract
@@ -231,13 +206,14 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         require(commitment != bytes32(0), "Core: Invalid commitment");
 
         DepositData storage depositData = pendingDeposit[account];
-        //TODO check again
+        // TODO check again
         require(depositData.commitment == commitment, "Core: Wrong Commitment or Account");
         // still needed to prevent redundant hash from the same sender
         //  TODO another mechanism to prevent from redundant deposit
         //  TODO ie must be 0.25 ether?
         require(depositData.committedAmount < denomination, "Core: Commited Amount already exceeded");
         require(depositData.account == account, "Core: Wrong Account");
+        require(!submittiedCommitments[commitment], "Core: Commitment already deposited");
 
         // DepositData storage ownerToDepositData = ownerToDeposit[caller];
 
@@ -252,11 +228,58 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
         ownerToDeposit[caller].commitment = commitment;
         ownerToDeposit[caller].committedAmount += amountIn;
+         //todo add assertion
+        ownerToDeposit[caller].account = account;
 
         // TODO Change to updateAcccount and test _updateBalance(,0) and getTop for SortedList
-        _addAccount(account, amountIn);
+        // _addAccount(account, amountIn);
 
         emit Commit(commitment, account, amountIn, block.timestamp);
+    }
+
+    /**
+     * @dev add depositData to already deployed account (pendingDeposit) called by router
+     */
+     function commitExisting_2ndPhase_Callback(
+        address caller,
+        address account,
+        bytes32 existingCommitment,
+        bytes32 newCommitment,
+        uint256 nonce,
+        uint256 amountIn
+    ) external payable override {
+
+        require(account == getBottom(), "Core: Only callable from bottom account");
+
+        require(uint256(existingCommitment) < FIELD_SIZE, "Core: Commitment Out of Range");
+        require(existingCommitment != bytes32(0), "Core: Invalid commitment");
+        require(uint256(newCommitment) < FIELD_SIZE, "Core: Commitment Out of Range");
+        require(newCommitment != bytes32(0), "Core: Invalid commitment");
+
+        require( accountCurrentNumber > 0, "Core: Schelling > No Account added");
+        require(accountCurrentNumber > accountSchellingNumber, "Core: Schelling > CurrentNumber : Do commit via router");
+
+        // TODO Remove this block? as we  may only need `ownerToDeposit`
+        DepositData storage depositData = pendingDeposit[account];
+        require(depositData.commitment == bytes32(0), "Core: No Pending Commitment");
+        require(depositData.committedAmount == 0, "Core: Amount already Commited");
+        require(depositData.account == address(0), "Core: No Pending Address");
+
+        require(submittiedCommitments[existingCommitment], "Core: 1stCommitment not made");
+        require(!submittiedCommitments[newCommitment], "Core: Commitment already deposited");
+
+        CallbackValidation.verifyCallback(address(this), existingCommitment, nonce);
+
+        depositData.commitment = newCommitment;
+        depositData.committedAmount += amountIn;
+        depositData.account = account;
+
+        ownerToDeposit[caller].commitment = newCommitment;
+        ownerToDeposit[caller].committedAmount += amountIn;
+        ownerToDeposit[caller].account = account;
+
+        emit Commit(newCommitment, account, amountIn, block.timestamp);
+
     }
 
     function clear_commitment_Callback(address caller, address account, uint256 nonce) external override {
@@ -270,10 +293,15 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
         delete pendingDeposit[account].commitment;
         delete pendingDeposit[account].committedAmount;
+        //todo add assertion
+        delete pendingDeposit[account].account;
+
         delete ownerToDeposit[caller].commitment;
         delete ownerToDeposit[caller].committedAmount;
+        //todo add assertion
+        delete ownerToDeposit[caller].account;
 
-        _removeAccount(account);
+        // _removeAccount(account);
 
         emit Clear(_pendingDeposit, account, block.timestamp);
     }
@@ -304,8 +332,12 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
             "Core: Invalid deposit proof"
         );
 
+        console.log("ownerToDepositData.account", ownerToDepositData.account);
+
         delete pendingDeposit[ownerToDepositData.account];
         delete ownerToDeposit[msg.sender];
+
+        submittiedCommitments[_pendingDeposit] = true;
 
         uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
 
@@ -315,6 +347,9 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         uint256 _nextIndex = nextIndex;
 
         // todo  move addAccount to this block
+        _addAccount(ownerToDepositData.account, _committedAmount);
+
+        console.log("ownerToDepositData.account", ownerToDepositData.account);
 
         nextIndex += 1;
         emit Insert(_pendingDeposit, _nextIndex, block.timestamp);
@@ -339,6 +374,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         require(withdrawData.withdrawnAmount < denomination, "Core: Withdrawn Amount already exceeded");
 
         uint256 amountOut = denomination / paymentNumber;
+        // uint256 amountOut = denomination ;
 
          // TODO if only final full withdraw ?
          // TODO Add time constraint
@@ -374,12 +410,15 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
 
         // todo add rule to use whether getBottom() or getTop()
         address accountToWithdraw = getBottom();
+
+        console.log("accountToWithdraw", accountToWithdraw);
+
         if ( accountToWithdraw.balance == amountOut )
             _removeAccount(accountToWithdraw);
             // todo add rule to use whether getBottom() or getTop()
             // todo  _updateAccount
 
-        IAccount(accountToWithdraw).withdraw_callback(address(this), _recipient, amountOut);
+        IAccount(payable(accountToWithdraw)).withdraw_callback(address(this), _recipient, amountOut);
        
     }
 
@@ -393,6 +432,14 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         accountCurrentNumber--;
     }
 
+    function getBottom() public view override (IPoolsCounterBalancer, SortedList ) returns (address) {
+        return super.getBottom();
+    }
+
+    function getCurrentAmountIn() external view returns (uint256) {
+        return denomination;
+    }
+
     function getPendingCommitment(address account) external view returns (bytes32) {
         return pendingDeposit[account].commitment;
     }
@@ -401,13 +448,29 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
         return pendingDeposit[account].committedAmount;
     }
 
-    function getOwnerCommitment(address owner) external view returns (bytes32) {
-        return ownerToDeposit[owner].commitment;
+    //todo add assertion
+    function getPendingBalanceAccount(address account) external view returns (address) {
+        return pendingDeposit[account].account;
+    }
+
+     //todo add assertion
+    function getOwnerCommitment(bytes32 commitment) external view returns (bool) {
+        return submittiedCommitments[commitment];
     }
 
     function getOwnerCommittedAmount(address owner) external view returns (uint256) {
         return ownerToDeposit[owner].committedAmount;
     }
+
+    //todo add assertion
+    function getOwnerAccount(address owner) external view returns (address) {
+        return ownerToDeposit[owner].account;
+    }
+
+    function getOwnerCommitment(address owner) external view returns (bytes32) {
+        return ownerToDeposit[owner].commitment;
+    }
+
 
     function getWithdrawnAmount(bytes32 nullifierHash) external view returns (uint256) {
         return nullifierHashToWithdraw[nullifierHash].withdrawnAmount;
@@ -416,6 +479,7 @@ contract Core is ICore, IPoolsCounterBalancer, SortedList, AccountDeployer, NoDe
     function getIsNullified(bytes32 nullifierHash) external view returns (bool){
         return nullifierHashToWithdraw[nullifierHash].isNullified;
     }
+
 
      function isKnownRoot(bytes32 _root) public view returns (bool) {
         if (_root == 0) return false;

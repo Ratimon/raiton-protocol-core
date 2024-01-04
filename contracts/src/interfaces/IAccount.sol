@@ -11,6 +11,8 @@ interface IAccount {
 
     function commitNew_2ndPhase() external payable returns (uint256);
 
+    function commitExisting_2ndPhase(address sender, bytes32 _commmitment) external payable returns (uint256);
+
     function clear_commitment(address payable to) external;
 
     function withdraw_callback(address caller, address to, uint256 amountOut) external;

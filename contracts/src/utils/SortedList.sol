@@ -4,7 +4,7 @@ pragma solidity =0.8.20;
 contract SortedList {
     mapping(address => uint256) public balances;
     mapping(address => address) _nextAccounts;
-    address private lowestAccount;
+    address public lowestAccount;
     uint256 public listSize;
     address constant GUARD = address(99);
 
@@ -76,7 +76,8 @@ contract SortedList {
         return accountLists;
     }
 
-    function getBottom() public view returns (address) {
+    //todo revert if no account?
+    function getBottom() public view virtual returns (address) {
         return lowestAccount;
     }
 

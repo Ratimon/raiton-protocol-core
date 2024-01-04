@@ -12,5 +12,18 @@ interface IPoolsCounterBalancer {
         uint256 amountIn
     ) external payable;
 
+    function commitExisting_2ndPhase_Callback(
+        address caller,
+        address account,
+        bytes32 existingCommitment,
+        bytes32 newCommitment,
+        uint256 nonce,
+        uint256 amountIn
+    ) external payable;
+
     function clear_commitment_Callback(address caller, address account, uint256 nonce) external;
+
+    function getCurrentAmountIn() external returns (uint256);
+
+    function getBottom() external view returns (address);
 }
