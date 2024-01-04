@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {console} from "@forge-std/console.sol";
-
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {IAccount} from "@main/interfaces/IAccount.sol";
@@ -332,8 +330,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
             "Core: Invalid deposit proof"
         );
 
-        console.log("ownerToDepositData.account", ownerToDepositData.account);
-
         delete pendingDeposit[ownerToDepositData.account];
         delete ownerToDeposit[msg.sender];
 
@@ -348,8 +344,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
         // todo  move addAccount to this block
         _addAccount(ownerToDepositData.account, _committedAmount);
-
-        console.log("ownerToDepositData.account", ownerToDepositData.account);
 
         nextIndex += 1;
         emit Insert(_pendingDeposit, _nextIndex, block.timestamp);
@@ -410,8 +404,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
         // todo add rule to use whether getBottom() or getTop()
         address accountToWithdraw = getBottom();
-
-        console.log("accountToWithdraw", accountToWithdraw);
 
         if ( accountToWithdraw.balance == amountOut )
             _removeAccount(accountToWithdraw);
