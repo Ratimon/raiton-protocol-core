@@ -174,7 +174,7 @@ contract SharedHarness is Test {
         bytes32 commitment,
         uint256 amount,
         bytes32[] memory existingCommitments
-    ) internal returns (bytes32[] memory pushCommitments)  {
+    ) internal returns (bytes32[] memory pushedCommitments)  {
         vm.startPrank(user);
 
         Core.Proof memory depositProof;
@@ -224,10 +224,14 @@ contract SharedHarness is Test {
 
         vm.stopPrank();
 
-        pushCommitments = new bytes32[](existingCommitments.length + 1);
-        pushCommitments[0] = commitment;
+        pushedCommitments = new bytes32[](existingCommitments.length + 1);
 
-        return pushCommitments;
+        for (uint256 i = 0; i < existingCommitments.length; i++) {
+            pushedCommitments[i] = existingCommitments[i];
+        }
+        pushedCommitments[pushedCommitments.length-1] = commitment;
+
+        return pushedCommitments;
     }
 
     struct PartialWithdrawStruct {
@@ -240,12 +244,13 @@ contract SharedHarness is Test {
         bytes32 nullifierHash;
         bytes32 commitment;
         uint256 denomination;
+        uint256 amountToWithdraw;
         uint256 fee;
         bytes32[] pushedCommitments;
     }
     function partialWithdrawAndAssertCore(
         PartialWithdrawStruct memory partialWithdrawStruct
-    ) internal returns(bool) {
+    ) internal returns(bytes32[] memory pushedCommitments) {
         vm.startPrank(partialWithdrawStruct.relayer);
 
         Core.Proof memory partialWithdrawProof;
@@ -263,7 +268,7 @@ contract SharedHarness is Test {
                         partialWithdrawStruct.commitment, // new commitment
                         partialWithdrawStruct.denomination, // amount = denomination
                         partialWithdrawStruct.user, //recipient
-                        (partialWithdrawStruct.denomination / core.paymentNumber()), // amount = denomination / payment number
+                        partialWithdrawStruct.amountToWithdraw, // amount = denomination / payment number
                         // partialWithdrawStruct.denomination, // amount = denomination / payment number
                         relayer_signer,
                         partialWithdrawStruct.fee, // fee
@@ -296,7 +301,7 @@ contract SharedHarness is Test {
             partialWithdrawStruct.fee // fee
         );
 
-        assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), partialWithdrawStruct.denomination / core.paymentNumber());
+        assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), partialWithdrawStruct.amountToWithdraw);
         // TODO fix when scenario of 4 time partial withdrawn
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
 
@@ -305,12 +310,19 @@ contract SharedHarness is Test {
         assertEq(core.currentRootIndex(), _currentRootIndex + 1);
 
          // todo  _updateAccount
-
-        assertEq( address(partialWithdrawStruct.user).balance - preWithdrawToBalance, (partialWithdrawStruct.denomination / core.paymentNumber()));
+        assertEq( address(partialWithdrawStruct.user).balance - preWithdrawToBalance, partialWithdrawStruct.amountToWithdraw);
 
         vm.stopPrank();
 
-        return core.getIsNullified(partialWithdrawStruct.nullifierHash);
+        pushedCommitments = new bytes32[](partialWithdrawStruct.pushedCommitments.length + 1);
+
+        for (uint256 i = 0; i < partialWithdrawStruct.pushedCommitments.length; i++) {
+            pushedCommitments[i] = partialWithdrawStruct.pushedCommitments[i];
+        }
+        pushedCommitments[pushedCommitments.length-1] = partialWithdrawStruct.commitment;
+
+        return pushedCommitments;
+
     }
 
     function getDepositCommitmentHash(uint256 leafIndex, uint256 denomination) internal returns (bytes memory) {

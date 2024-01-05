@@ -53,7 +53,7 @@ contract SortedListTest is Test {
         list.addAccount(carol, 3 ether);
         list.addAccount(dave, 4 ether);
 
-        address[] memory accounts = list.getTop(4);
+        address[] memory accounts = list.getTopAccount(4);
 
         assertEq(accounts[0], dave);
         assertEq(accounts[1], carol);
@@ -77,7 +77,7 @@ contract SortedListTest is Test {
         list.removeAccount(carol);
         list.removeAccount(alice);
 
-        address[] memory accounts = list.getTop(2);
+        address[] memory accounts = list.getTopAccount(2);
 
         assertEq(accounts[0], dave);
         assertEq(accounts[1], bob);
@@ -92,7 +92,7 @@ contract SortedListTest is Test {
         vm.startPrank(deployer);
 
         vm.expectRevert(bytes("SortedList: k must be > than list size"));
-        list.getTop(2);
+        list.getTopAccount(2);
 
         vm.stopPrank();
     }

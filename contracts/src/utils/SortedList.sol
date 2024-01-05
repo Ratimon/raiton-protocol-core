@@ -1,11 +1,15 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
+import {console2} from "@forge-std/console2.sol";
+
+
 contract SortedList {
-    mapping(address => uint256) public balances;
-    mapping(address => address) _nextAccounts;
-    address public lowestAccount;
-    uint256 public listSize;
+    //todo add getter for balances
+    mapping(address => uint256) private balances;
+    mapping(address => address) private _nextAccounts;
+    address private lowestAccount;
+    uint256 private listSize;
     address constant GUARD = address(99);
 
     constructor() {
@@ -17,7 +21,7 @@ contract SortedList {
      * @notice find the right place, between balances of previous and next accounts, then insert the new account
      */
     function _addAccount(address account, uint256 balance) internal virtual {
-        require(_nextAccounts[account] == address(0));
+        require(_nextAccounts[account] == address(0), "SortedList: must be empty");
         address index = _findIndex(balance);
         balances[account] = balance;
 
@@ -32,7 +36,7 @@ contract SortedList {
     }
 
     function _removeAccount(address account) internal virtual {
-        require(_nextAccounts[account] != address(0));
+        require(_nextAccounts[account] != address(0), "SortedList: must be not  empty");
         address prevAccount = _findPrevAccount(account);
         _nextAccounts[prevAccount] = _nextAccounts[account];
         _nextAccounts[account] = address(0);
@@ -42,19 +46,21 @@ contract SortedList {
             lowestAccount = prevAccount;
         }
 
+        console2.log('lowestAccount', lowestAccount);
+
         listSize--;
     }
 
-    function _increaseBalance(address account, uint256 score) internal {
-        _updateBalance(account, balances[account] + score);
+    function _increaseBalance(address account, uint256 amount) internal {
+        _updateBalance(account, balances[account] + amount);
     }
 
-    function _reduceBalance(address account, uint256 score) internal {
-        _updateBalance(account, balances[account] - score);
+    function _reduceBalance(address account, uint256 amount) internal {
+        _updateBalance(account, balances[account] - amount);
     }
 
     function _updateBalance(address account, uint256 newBalance) internal {
-        require(_nextAccounts[account] != address(0));
+        require(_nextAccounts[account] != address(0), "SortedList: must be not  empty");
         address prevAccount = _findPrevAccount(account);
         address nextAccount = _nextAccounts[account];
         if (_verifyIndex(prevAccount, newBalance, nextAccount)) {
@@ -65,7 +71,7 @@ contract SortedList {
         }
     }
 
-    function getTop(uint256 k) public view returns (address[] memory) {
+    function getTopAccount(uint256 k) public view returns (address[] memory) {
         require(k <= listSize, "SortedList: k must be > than list size");
         address[] memory accountLists = new address[](k);
         address currentAddress = _nextAccounts[GUARD];
@@ -74,6 +80,11 @@ contract SortedList {
             currentAddress = _nextAccounts[currentAddress];
         }
         return accountLists;
+    }
+
+    // todo add test suites
+    function isAccountEmpty(address addr) public view returns (bool) {
+        return _nextAccounts[addr] == address(0);
     }
 
     //todo revert if no account?
