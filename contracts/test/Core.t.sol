@@ -30,6 +30,7 @@ contract CoreTest is SharedHarness {
         deployAndAssertCore(alice, commitment);
     }
 
+    address[] ownerAccounts ;
     function test_commitNew_2ndPhase_Callback() external {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
@@ -43,10 +44,13 @@ contract CoreTest is SharedHarness {
         // to do fix amount
         // todo: assert emit
         // todo: check why denomination =  1 ether?, it must be 0.25 ether?
-        commitNewAndAssertCore(alice, deployReturns[0].account, commitment, 0, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[1].account, commitment, 1, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[2].account, commitment, 2, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[3].account, commitment, 3, committedAmount);
+
+        delete ownerAccounts;
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts,  deployReturns[0].account, commitment, 0, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, commitment, 1, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, commitment, 2, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, 3, committedAmount);
+        delete ownerAccounts;
 
         // Todo move this block to deposit
         // address[] memory topAccounts = core.getTop(2);
@@ -65,9 +69,12 @@ contract CoreTest is SharedHarness {
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
-        address account = commitNewAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
 
-        clearAndAssertCore(alice, account, bob, committedAmount);
+        delete ownerAccounts;
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
+
+        clearAndAssertCore(alice, ownerAccounts[0], bob, committedAmount);
+        delete ownerAccounts;
 
         // / Todo move this block to deposit
         // vm.expectRevert(bytes("SortedList: k must be > than list size"));
@@ -83,10 +90,12 @@ contract CoreTest is SharedHarness {
         bytes32[] memory existingCommitments = new bytes32[](0);
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
-        commitNewAndAssertCore(alice, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
+        delete ownerAccounts;
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
+        delete ownerAccounts;
 
         depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
     }
@@ -108,10 +117,12 @@ contract CoreTest is SharedHarness {
         bytes32[] memory existingCommitments = new bytes32[](0);
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
-        commitNewAndAssertCore(alice, deployReturns[0].account , commitment, deployReturns[0].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
+        delete ownerAccounts;
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account , commitment, deployReturns[0].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
+        delete ownerAccounts;
 
         bytes32[] memory pushedCommitments = depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
 
@@ -178,10 +189,12 @@ contract CoreTest is SharedHarness {
         bytes32[] memory existingCommitments = new bytes32[](0);
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, newCommitment);
-        commitNewAndAssertCore(alice, deployReturns[0].account, newCommitment, deployReturns[0].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[1].account, newCommitment, deployReturns[1].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[2].account, newCommitment, deployReturns[2].nonce, committedAmount);
-        commitNewAndAssertCore(alice, deployReturns[3].account, newCommitment, deployReturns[3].nonce, committedAmount);
+        delete ownerAccounts;
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, newCommitment, deployReturns[0].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, newCommitment, deployReturns[1].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, newCommitment, deployReturns[2].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, newCommitment, deployReturns[3].nonce, committedAmount);
+        delete ownerAccounts;
 
         depositAndAssertCore(alice, newLeafIndex, newNullifier, newCommitment, denomination, existingCommitments);
 

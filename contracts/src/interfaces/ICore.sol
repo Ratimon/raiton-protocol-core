@@ -11,9 +11,11 @@ interface ICore {
 
     function getPendingCommittedAmountToDeposit(address account) external view returns (uint256);
 
-    function getOwnerCommitment(address account) external view returns (bytes32);
+    function getOwnerCommitment(address owner) external view returns (bytes32);
 
-    function getOwnerCommittedAmount(address account) external view returns (uint256);
+    function getOwnerCommittedAmount(address owner) external view returns (uint256);
+
+    function getOwnerAccounts(address owner) external view returns (address[] memory);
 
     function getWithdrawnAmount(bytes32 nullifierHash) external view returns (uint256);
 

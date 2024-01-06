@@ -226,14 +226,12 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         // TODO return ?
         CallbackValidation.verifyCallback(address(this), commitment, nonce);
         delete getPendingAccountToCommit[commitment][nonce];
-        // pendingDeposit[caller] = commitment;
 
         balanceData.committedAmount += amountIn;
 
         ownerToDeposit[caller].commitment = commitment;
         ownerToDeposit[caller].committedAmount += amountIn;
 
-        //todo add assertion : getOwnerAccounts
         //todo refactor to private funtion
         address[] storage accounts = ownerToDeposit[caller].accounts;
         bool isAddrRedundant;
@@ -244,14 +242,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         }
         if (!isAddrRedundant)  accounts.push(account);
        
-        // ownerToDeposit[caller].commitment = commitment;
-        // ownerToDeposit[caller].committedAmount += amountIn;
-        //  //todo add assertion
-        // ownerToDeposit[caller].account = account;
-
-        // TODO Change to updateAcccount and test _updateBalance(,0) and getTop for SortedList
-        // _addAccount(account, amountIn);
-
         emit Commit(commitment, account, amountIn, block.timestamp);
     }
 
@@ -501,15 +491,15 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         return ownerToDeposit[owner].committedAmount;
     }
 
-    //todo add assertion
-    function getOwnerAccounts(address owner) external view returns (address[] memory){
-        return ownerToDeposit[owner].accounts;
-    }
 
     function getOwnerCommitment(address owner) external view returns (bytes32) {
         return ownerToDeposit[owner].commitment;
     }
 
+    //todo add assertion
+    function getOwnerAccounts(address owner) external view returns (address[] memory){
+        return ownerToDeposit[owner].accounts;
+    }
 
     function getWithdrawnAmount(bytes32 nullifierHash) external view returns (uint256) {
         return nullifierHashToWithdraw[nullifierHash].withdrawnAmount;

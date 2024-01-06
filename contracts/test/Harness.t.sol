@@ -85,32 +85,41 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
-    function commitNewAndAssertCore(address user, address account, bytes32 commitment, uint256 nonce, uint256 amount)
+    function commitNewAndAssertCore(address user, address[] memory preAccounts, address newAccount, bytes32 commitment, uint256 nonce, uint256 amount)
         internal
-        returns (address)
+        returns (address[] memory postAccounts)
     {
         startHoax(user, amount);
 
-        assertEq(core.getPendingAccountToCommit(commitment, nonce), account);
-        assertEq(core.getPendingCommitmentToDeposit(account), commitment);
+        assertEq(core.getPendingAccountToCommit(commitment, nonce), newAccount);
+        assertEq(core.getPendingCommitmentToDeposit(newAccount), commitment);
 
-        uint256 prePendingCommittedAmount = core.getPendingCommittedAmountToDeposit(account);
+        uint256 prePendingCommittedAmount = core.getPendingCommittedAmountToDeposit(newAccount);
         uint256 preOwnerCommittedAmount = core.getOwnerCommittedAmount(user);
 
-        uint256 returningAmount = IAccount(account).commitNew_2ndPhase{value: amount}();
+        assertEq(core.getOwnerAccounts(user), preAccounts);
+
+        uint256 returningAmount = IAccount(newAccount).commitNew_2ndPhase{value: amount}();
         assertEq(returningAmount, amount);
 
         assertEq(core.getPendingAccountToCommit(commitment, nonce), address(0));
 
-        assertEq(core.getPendingCommitmentToDeposit(account), commitment);
-        assertEq(core.getPendingCommittedAmountToDeposit(account), prePendingCommittedAmount + amount);
+        assertEq(core.getPendingCommitmentToDeposit(newAccount), commitment);
+        assertEq(core.getPendingCommittedAmountToDeposit(newAccount), prePendingCommittedAmount + amount);
 
         assertEq(core.getOwnerCommitment(user), commitment);
         assertEq(core.getOwnerCommittedAmount(user), preOwnerCommittedAmount + amount);
 
+        postAccounts = new address[](preAccounts.length + 1);
+        for (uint256 i = 0; i < preAccounts.length; i++) {
+            postAccounts[i] = preAccounts[i];
+        }
+        postAccounts[postAccounts.length - 1] = newAccount;
+        assertEq(core.getOwnerAccounts(user), postAccounts);
+
         vm.stopPrank();
 
-        return account;
+        return postAccounts;
     }
 
     function commitExistingAndAssertCore(address user, bytes32 newCommitment)
