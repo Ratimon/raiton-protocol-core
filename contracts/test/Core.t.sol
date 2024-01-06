@@ -142,10 +142,6 @@ contract CoreTest is SharedHarness {
             )
         );
 
-        pushedCommitments = new bytes32[](2);
-        pushedCommitments[0] = commitment;
-        pushedCommitments[1] = newCommitment;
-
         newLeafIndex = nextLeafIndex;
         nullifier = newNullifier;
         nextLeafIndex = 2;
