@@ -122,13 +122,12 @@ contract SharedHarness is Test {
         return postAccounts;
     }
 
-    function commitExistingAndAssertCore(address user, bytes32 newCommitment)
+    function commitExistingAndAssertCore(address user, address[] memory preAccounts, bytes32 newCommitment)
         internal
-        returns (address)
+        returns (address[] memory postAccounts)
     {
         address bottomAccount = core.getBottomAccount();
         uint256 amountToCommit = core.getCurrentAmountIn();
-
 
         startHoax(user, amountToCommit);
 
@@ -136,6 +135,8 @@ contract SharedHarness is Test {
 
         uint256 prePendingCommittedAmount = core.getPendingCommittedAmountToDeposit(bottomAccount);
         uint256 preOwnerCommittedAmount = core.getOwnerCommittedAmount(user);
+
+        assertEq(core.getOwnerAccounts(user), preAccounts);
 
         uint256 returningAmount = IAccount(bottomAccount).commitExisting_2ndPhase{value: amountToCommit}(alice, newCommitment);
         assertEq(returningAmount, amountToCommit);
@@ -146,9 +147,16 @@ contract SharedHarness is Test {
         assertEq(core.getOwnerCommitment(user), newCommitment);
         assertEq(core.getOwnerCommittedAmount(user), preOwnerCommittedAmount + amountToCommit);
 
+        postAccounts = new address[](preAccounts.length + 1);
+        for (uint256 i = 0; i < preAccounts.length; i++) {
+            postAccounts[i] = preAccounts[i];
+        }
+        postAccounts[postAccounts.length - 1] = bottomAccount;
+        assertEq(core.getOwnerAccounts(user), postAccounts);
+
         vm.stopPrank();
 
-        return bottomAccount;
+        return postAccounts;
     }
 
     function clearAndAssertCore(address user, address account, address to, uint256 amount) internal {

@@ -201,13 +201,10 @@ contract CoreTest is SharedHarness {
         (bytes32 nextCommitment,, ) =
         abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
 
-        address committedAccount = commitExistingAndAssertCore(alice, nextCommitment);
+        address[] memory committedAccount = commitExistingAndAssertCore(alice, ownerAccounts, nextCommitment);
+        delete ownerAccounts;
 
-        address lowestAccount = core.getBottomAccount();
-        assertEq(lowestAccount, committedAccount);
-
+        assertEq(core.getBottomAccount(), committedAccount[0]);
     }
-
-    
 
 }

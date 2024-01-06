@@ -182,6 +182,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
             BalanceData storage balanceData = pendingBalance[account];
             balanceData.commitment = commitment;
+            //todo add assertion
             balanceData.account = account;
             // pendingDeposit[msg.sender] = DepositData({commitment: commitment, commitedAmount: 0});
 
@@ -285,7 +286,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         ownerToDeposit[caller].commitment = newCommitment;
         ownerToDeposit[caller].committedAmount += amountIn;
 
-        //todo add assertion : getOwnerAccounts
         //todo refactor to private funtion
         address[] storage accounts = ownerToDeposit[caller].accounts;
         bool isAddrRedundant;
