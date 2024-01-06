@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {console2} from "@forge-std/console2.sol";
-
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {IAccount} from "@main/interfaces/IAccount.sol";
@@ -331,8 +329,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         //todo add assertion
         delete ownerToDeposit[caller].accounts;
 
-        // _removeAccount(account);
-
         emit Clear(_pendingCommitment, account, block.timestamp);
     }
 
@@ -437,9 +433,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
             "Invalid withdraw proof"
         );
 
-        console2.log("after verifier");
-        console2.log("amountOut", amountOut);
-
         withdrawData.withdrawnAmount += amountOut;
 
         if(withdrawData.withdrawnAmount  == denomination)
@@ -453,9 +446,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
         // todo add rule to use whether getBottomAccount() or getTop()
         address accountToWithdraw = getBottomAccount();
-
-        console2.log("accountToWithdraw", accountToWithdraw);
-        console2.log("accountToWithdraw.balance", accountToWithdraw.balance);
 
         // TODO add assertion for _addAccount like core.getTopAccounts(2);
         // TODO add getter for balances

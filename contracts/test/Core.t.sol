@@ -115,10 +115,6 @@ contract CoreTest is SharedHarness {
 
         bytes32[] memory pushedCommitments = depositAndAssertCore(alice, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
 
-        console2.log("pushedCommitments[0]");
-        console2.logBytes32( pushedCommitments[0]);
-        // console2.log("pushedCommitments[1]");
-        // console2.logBytes32( pushedCommitments[1]);
 
         uint256 nextLeafIndex = 1;
         bytes32 newCommitment;
@@ -126,9 +122,6 @@ contract CoreTest is SharedHarness {
         bytes32 newNullifier;
         ( newCommitment, newNullifierHash, newNullifier) =
             abi.decode(getDepositCommitmentHash(nextLeafIndex, 0.75 ether ), (bytes32, bytes32, bytes32));
-
-        console2.log("newCommitment");
-        console2.logBytes32( newCommitment);
 
         pushedCommitments = partialWithdrawAndAssertCore(
             PartialWithdrawStruct(
@@ -152,11 +145,6 @@ contract CoreTest is SharedHarness {
         pushedCommitments = new bytes32[](2);
         pushedCommitments[0] = commitment;
         pushedCommitments[1] = newCommitment;
-
-        console2.log("pushedCommitments[0]");
-        console2.logBytes32( pushedCommitments[0]);
-        console2.log("pushedCommitments[1]");
-        console2.logBytes32( pushedCommitments[1]);
 
         newLeafIndex = nextLeafIndex;
         nullifier = newNullifier;

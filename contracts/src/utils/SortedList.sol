@@ -1,8 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {console2} from "@forge-std/console2.sol";
-
 
 contract SortedList {
     //todo add getter for balances
@@ -45,8 +43,6 @@ contract SortedList {
         if (_nextAccounts[prevAccount] == GUARD || balances[prevAccount] <= balances[lowestAccount]) {
             lowestAccount = prevAccount;
         }
-
-        console2.log('lowestAccount', lowestAccount);
 
         listSize--;
     }
