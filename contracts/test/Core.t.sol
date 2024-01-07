@@ -43,8 +43,6 @@ contract CoreTest is SharedHarness {
         // It is single premium just needs to abstract four payments into single one via router
         // to do fix amount
         // todo: assert emit
-        // todo: check why denomination =  1 ether?, it must be 0.25 ether?
-
         delete ownerAccounts;
         ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts,  deployReturns[0].account, commitment, 0, committedAmount);
         ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, commitment, 1, committedAmount);
@@ -73,7 +71,7 @@ contract CoreTest is SharedHarness {
         delete ownerAccounts;
         ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
 
-        clearAndAssertCore(alice, ownerAccounts[0], bob, committedAmount);
+        clearAndAssertCore(alice, ownerAccounts, ownerAccounts[0], bob, committedAmount);
         delete ownerAccounts;
 
         // / Todo move this block to deposit

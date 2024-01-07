@@ -159,7 +159,8 @@ contract SharedHarness is Test {
         return postAccounts;
     }
 
-    function clearAndAssertCore(address user, address account, address to, uint256 amount) internal {
+    address[] emptyArrays ;
+    function clearAndAssertCore(address user, address[] memory preAccounts, address account, address to, uint256 amount) internal {
         vm.startPrank(user);
 
         assertTrue(core.getPendingCommitmentToDeposit(account) != bytes32(0));
@@ -167,6 +168,8 @@ contract SharedHarness is Test {
 
         assertTrue(core.getOwnerCommitment(user) != bytes32(0));
         assertTrue(core.getOwnerCommittedAmount(user) != 0);
+
+        assertEq(core.getOwnerAccounts(user), preAccounts);
 
         uint256 preClearToBalance = to.balance;
 
@@ -178,6 +181,9 @@ contract SharedHarness is Test {
 
         assertEq(core.getOwnerCommitment(user), bytes32(0));
         assertEq(core.getOwnerCommittedAmount(user), 0);
+
+        delete emptyArrays;
+        assertEq(core.getOwnerAccounts(user), emptyArrays);
 
         assertEq(to.balance - preClearToBalance, amount);
 
