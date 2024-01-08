@@ -419,26 +419,23 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
             "Invalid withdraw proof"
         );
 
-        withdrawData.withdrawnAmount += amountOut;
-
-        if(withdrawData.withdrawnAmount  == denomination)
-            withdrawData.isNullified = true;
-
         uint128 newCurrentRootIndex = uint128((currentRootIndex + 1) % ROOT_HISTORY_SIZE);
         currentRootIndex = newCurrentRootIndex;
         roots[newCurrentRootIndex] = _newRoot;
         uint256 _nextIndex = nextIndex;
         nextIndex += 1;
 
+        withdrawData.withdrawnAmount += amountOut;
+
+        if(withdrawData.withdrawnAmount  == denomination)
+            withdrawData.isNullified = true;
+
         // todo add rule to use whether getBottomAccount() or getTop()
         address accountToWithdraw = getBottomAccount();
 
-        // TODO add assertion for _addAccount like core.getTopAccounts(2);
-        // TODO add getter for balances
         if ( accountToWithdraw.balance == amountOut ) {
             _removeAccount(accountToWithdraw);
             // todo add rule to use whether getBottomAccount() or getTop()
-            // todo  _updateAccount
         } else {
             _reduceBalance(accountToWithdraw, amountOut);
         }

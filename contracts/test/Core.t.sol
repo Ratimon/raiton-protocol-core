@@ -41,7 +41,7 @@ contract CoreTest is SharedHarness {
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
 
         // It is single premium just needs to abstract four payments into single one via router
-        // to do fix amount
+        // todo fix amount
         // todo: assert emit
         delete ownerAccounts;
         ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts,  deployReturns[0].account, commitment, 0, committedAmount);
@@ -111,7 +111,6 @@ contract CoreTest is SharedHarness {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
         uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
-        // uint256 fee = 0 ether;
 
         //TODO refactor to harness
         bytes32 commitment;
@@ -131,56 +130,56 @@ contract CoreTest is SharedHarness {
         bytes32[] memory pushedCommitments = depositAndAssertCore(alice, ownerAccounts, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
         delete ownerAccounts;
 
-        uint256 nextLeafIndex = 1;
         bytes32 newCommitment;
         bytes32 newNullifierHash;
         bytes32 newNullifier;
+        // uint256 nextLeafIndex = 1;
         ( newCommitment, newNullifierHash, newNullifier) =
-            abi.decode(getDepositCommitmentHash(nextLeafIndex, 0.75 ether ), (bytes32, bytes32, bytes32));
+            abi.decode(getDepositCommitmentHash(1, 0.75 ether ), (bytes32, bytes32, bytes32));
+
+        uint256 preWithdrawToBalance = alice.balance;
 
         pushedCommitments = partialWithdrawAndAssertCore(
             PartialWithdrawStruct(
                 relayer_signer,
                 alice,
-                newLeafIndex,  //0
-                nextLeafIndex, //1
+                0,  //newLeafIndex 0
+                1,  //nextLeafIndex 1
                 nullifier,
                 newNullifier,
                 nullifierHash, // from first commitment
                 newCommitment,
-                // denomination - (denomination / core.paymentNumber()),
-                denomination,
-                committedAmount, //amountToWithdraw
-                // (denomination / core.paymentNumber()),
+                denomination, // amount left
+                committedAmount, // amountToWithdraw
                 0 ether, //fee
                 pushedCommitments
             )
         );
 
-        newLeafIndex = nextLeafIndex;
         nullifier = newNullifier;
-        nextLeafIndex = 2;
-
+        // nextLeafIndex = 2;
         ( newCommitment, , newNullifier) =
-            abi.decode(getDepositCommitmentHash(nextLeafIndex, 0.5 ether ), (bytes32, bytes32, bytes32));
+            abi.decode(getDepositCommitmentHash(2, 0.5 ether ), (bytes32, bytes32, bytes32));
 
         partialWithdrawAndAssertCore(
             PartialWithdrawStruct(
                 relayer_signer,
                 alice,
-                newLeafIndex,  //1
-                nextLeafIndex, //2
+                1,  //newLeafIndex = 1
+                2, //nextLeafIndex = 2
                 nullifier,
                 newNullifier,
                 newNullifierHash,
                 newCommitment,
-                0.75 ether,
+                0.75 ether, // amount left
                 committedAmount, //amountToWithdraw
-                // (denomination / core.paymentNumber()),
                 0 ether, //fee
                 pushedCommitments
             )
         );
+
+        //todo abstract committedAmount
+        assertEq( alice.balance - preWithdrawToBalance, committedAmount + committedAmount);
 
     }
 
