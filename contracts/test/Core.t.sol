@@ -50,13 +50,6 @@ contract CoreTest is SharedHarness {
         ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, 3, committedAmount);
         delete ownerAccounts;
 
-        // Todo move this block to deposit
-        // address[] memory topAccounts = core.getTop(2);
-        // assertEq(topAccounts[0], deployReturns[0].account);
-        // assertEq(topAccounts[1], deployReturns[1].account);
-
-        // address lowestAccount = core.getBottomAccount();
-        // assertEq(lowestAccount, deployReturns[3].account);
     }
 
     function test_clear_commitment_Callback() external {
@@ -95,6 +88,19 @@ contract CoreTest is SharedHarness {
         ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
         
         depositAndAssertCore(alice, ownerAccounts, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
+
+        assertEq(ownerAccounts[0].balance, committedAmount);
+        assertEq( core.getBalance(ownerAccounts[0]) , committedAmount);
+
+        assertEq(ownerAccounts[1].balance, committedAmount);
+        assertEq( core.getBalance(ownerAccounts[1]) , committedAmount);
+
+        assertEq(ownerAccounts[2].balance, committedAmount);
+        assertEq( core.getBalance(ownerAccounts[2]) , committedAmount);
+
+        assertEq(ownerAccounts[3].balance, committedAmount);
+        assertEq( core.getBalance(ownerAccounts[3]) , committedAmount);
+
 
         delete ownerAccounts;
     }

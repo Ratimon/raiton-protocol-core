@@ -3,7 +3,6 @@ pragma solidity =0.8.20;
 
 
 contract SortedList {
-    //todo add getter for balances
     mapping(address => uint256) private balances;
     mapping(address => address) private _nextAccounts;
     address private lowestAccount;
@@ -65,6 +64,10 @@ contract SortedList {
             _removeAccount(account);
             _addAccount(account, newBalance);
         }
+    }
+
+    function getBalance(address account) public view returns (uint256) {
+        return balances[account];
     }
 
     function getTopAccount(uint256 k) public view returns (address[] memory) {

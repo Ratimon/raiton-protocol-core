@@ -361,15 +361,13 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
             delete pendingBalance[accounts[i]];
         }
 
-        // delete pendingBalance[ownerToDepositData.account];
         delete ownerToDeposit[msg.sender];
-
+        //todo add assertion
         submittiedCommitments[_pendingCommitment] = true;
 
         uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
 
         currentRootIndex = newCurrentRootIndex;
-
         roots[newCurrentRootIndex] = newRoot;
         uint256 _nextIndex = nextIndex;
 
