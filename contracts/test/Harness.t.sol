@@ -219,25 +219,20 @@ contract SharedHarness is Test {
             );
         }
 
-        assertTrue(core.getOwnerCommitment(user) != bytes32(0));
-        assertTrue(core.getOwnerCommittedAmount(user) != 0);
-        assertEq(core.getOwnerAccounts(user), preAccounts);
-
-        assertFalse(core.getSubmittiedCommitment(commitment));
-
         uint128 _currentRootIndex = core.currentRootIndex();
         //initialRootZero
         // todo: handle case when it is not 'initialRootZero'
         assertEq(core.roots( _currentRootIndex), 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb );
         assertEq(core.roots( _currentRootIndex + 1 ), bytes32(0));
 
+        assertFalse(core.getSubmittiedCommitment(commitment));
+
+        assertTrue(core.getOwnerCommitment(user) != bytes32(0));
+        assertTrue(core.getOwnerCommittedAmount(user) != 0);
+        assertEq(core.getOwnerAccounts(user), preAccounts);
+
         //todo: assert emit
         core.deposit(depositProof, newRoot);
-
-        assertEq(core.getOwnerCommitment(user), bytes32(0));
-        assertEq(core.getOwnerCommittedAmount(user), 0);
-        delete emptyArrays;
-        assertEq(core.getOwnerAccounts(user), emptyArrays);
 
         assertTrue(core.getSubmittiedCommitment(commitment));
 
@@ -252,6 +247,11 @@ contract SharedHarness is Test {
             assertEq(elements, core.nextIndex());
             assertEq(postDepositRoot, core.roots(newLeafIndex + 1));
         }
+
+        assertEq(core.getOwnerCommitment(user), bytes32(0));
+        assertEq(core.getOwnerCommittedAmount(user), 0);
+        delete emptyArrays;
+        assertEq(core.getOwnerAccounts(user), emptyArrays);
 
         vm.stopPrank();
 

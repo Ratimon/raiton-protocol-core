@@ -333,6 +333,8 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         require(_pendingCommitment != bytes32(0), "Core: Not Commited Yet");
         require(_committedAmount == denomination, "Core: Amount Commited Not Enough");
 
+        require(!submittiedCommitments[_pendingCommitment], "Core: Commitment already deposited");
+
         uint256 _currentRootIndex = currentRootIndex;
 
         // TODO use from pending commitment AND _removeAccount()
@@ -346,6 +348,15 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
             ),
             "Core: Invalid deposit proof"
         );
+
+        uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
+        currentRootIndex = newCurrentRootIndex;
+        roots[newCurrentRootIndex] = newRoot;
+        uint256 _nextIndex = nextIndex;
+
+        nextIndex += 1;
+
+        submittiedCommitments[_pendingCommitment] = true;
 
         // TODO add assertion for _addAccount like core.getTopAccounts(2);
         // TODO add getter for balances
@@ -363,14 +374,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
         delete ownerToDeposit[msg.sender];
 
-        submittiedCommitments[_pendingCommitment] = true;
-
-        uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
-        currentRootIndex = newCurrentRootIndex;
-        roots[newCurrentRootIndex] = newRoot;
-        uint256 _nextIndex = nextIndex;
-
-        nextIndex += 1;
         emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
     }
 
