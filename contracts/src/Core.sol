@@ -362,11 +362,10 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         }
 
         delete ownerToDeposit[msg.sender];
-        //todo add assertion
+
         submittiedCommitments[_pendingCommitment] = true;
 
         uint128 newCurrentRootIndex = uint128((_currentRootIndex + 1) % ROOT_HISTORY_SIZE);
-
         currentRootIndex = newCurrentRootIndex;
         roots[newCurrentRootIndex] = newRoot;
         uint256 _nextIndex = nextIndex;
@@ -479,15 +478,10 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         return pendingBalance[account].account;
     }
 
-     //todo add assertion
-    function getSubmittiedCommitment(bytes32 commitment) external view returns (bool) {
-        return submittiedCommitments[commitment];
-    }
 
     function getOwnerCommittedAmount(address owner) external view returns (uint256) {
         return ownerToDeposit[owner].committedAmount;
     }
-
 
     function getOwnerCommitment(address owner) external view returns (bytes32) {
         return ownerToDeposit[owner].commitment;
@@ -496,6 +490,10 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
     //todo add assertion
     function getOwnerAccounts(address owner) external view returns (address[] memory){
         return ownerToDeposit[owner].accounts;
+    }
+
+    function getSubmittiedCommitment(bytes32 commitment) external view returns (bool) {
+        return submittiedCommitments[commitment];
     }
 
     function getWithdrawnAmount(bytes32 nullifierHash) external view returns (uint256) {

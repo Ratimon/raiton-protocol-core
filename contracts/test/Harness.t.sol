@@ -223,6 +223,8 @@ contract SharedHarness is Test {
         assertTrue(core.getOwnerCommittedAmount(user) != 0);
         assertEq(core.getOwnerAccounts(user), preAccounts);
 
+        assertFalse(core.getSubmittiedCommitment(commitment));
+
         uint128 _currentRootIndex = core.currentRootIndex();
         //initialRootZero
         // todo: handle case when it is not 'initialRootZero'
@@ -234,9 +236,10 @@ contract SharedHarness is Test {
 
         assertEq(core.getOwnerCommitment(user), bytes32(0));
         assertEq(core.getOwnerCommittedAmount(user), 0);
-
         delete emptyArrays;
         assertEq(core.getOwnerAccounts(user), emptyArrays);
+        
+        assertTrue(core.getSubmittiedCommitment(commitment));
 
         assertEq(core.roots( core.currentRootIndex()), newRoot);
         assertEq( core.currentRootIndex(), _currentRootIndex + 1);
@@ -253,12 +256,10 @@ contract SharedHarness is Test {
         vm.stopPrank();
 
         pushedCommitments = new bytes32[](existingCommitments.length + 1);
-
         for (uint256 i = 0; i < existingCommitments.length; i++) {
             pushedCommitments[i] = existingCommitments[i];
         }
         pushedCommitments[pushedCommitments.length-1] = commitment;
-
         return pushedCommitments;
     }
 
