@@ -192,6 +192,7 @@ contract SharedHarness is Test {
 
     function depositAndAssertCore(
         address user,
+        address[] memory preAccounts,
         uint256 newLeafIndex,
         bytes32 nullifier,
         bytes32 commitment,
@@ -220,6 +221,7 @@ contract SharedHarness is Test {
 
         assertTrue(core.getOwnerCommitment(user) != bytes32(0));
         assertTrue(core.getOwnerCommittedAmount(user) != 0);
+        assertEq(core.getOwnerAccounts(user), preAccounts);
 
         uint128 _currentRootIndex = core.currentRootIndex();
         //initialRootZero
@@ -232,6 +234,9 @@ contract SharedHarness is Test {
 
         assertEq(core.getOwnerCommitment(user), bytes32(0));
         assertEq(core.getOwnerCommittedAmount(user), 0);
+
+        delete emptyArrays;
+        assertEq(core.getOwnerAccounts(user), emptyArrays);
 
         assertEq(core.roots( core.currentRootIndex()), newRoot);
         assertEq( core.currentRootIndex(), _currentRootIndex + 1);

@@ -335,7 +335,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
         uint256 _currentRootIndex = currentRootIndex;
 
-        // fix denomination
         // TODO use from pending commitment AND _removeAccount()
         // TODO revisit  hash: Poseidon(nullifier, 0, denomination) : whether we should delete 'denomination'
         require(
