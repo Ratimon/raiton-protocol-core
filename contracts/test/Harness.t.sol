@@ -65,7 +65,10 @@ contract SharedHarness is Test {
         assertEq(core.getPendingAccountToCommit(commitment, deployReturns[2].nonce), deployReturns[2].account);
         assertEq(core.getPendingAccountToCommit(commitment, deployReturns[3].nonce), deployReturns[3].account);
 
-        // todo: add assertion for pendingBalance
+        for (uint256 i = 0; i < accounts.length; i++) {
+            assertEq(core.getPendingCommitmentToDeposit(accounts[i]), commitment);
+            assertEq(core.getPendingAccountToDeposit(accounts[i]), deployReturns[i].account);
+        }
 
         vm.stopPrank();
     }
@@ -353,7 +356,6 @@ contract SharedHarness is Test {
         vm.stopPrank();
 
         pushedCommitments = new bytes32[](partialWithdrawStruct.pushedCommitments.length + 1);
-
         for (uint256 i = 0; i < partialWithdrawStruct.pushedCommitments.length; i++) {
             pushedCommitments[i] = partialWithdrawStruct.pushedCommitments[i];
         }

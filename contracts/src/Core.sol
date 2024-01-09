@@ -182,9 +182,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
             BalanceData storage balanceData = pendingBalance[account];
             balanceData.commitment = commitment;
-            //todo add assertion
             balanceData.account = account;
-            // pendingDeposit[msg.sender] = DepositData({commitment: commitment, commitedAmount: 0});
 
             accounts[i] = account;
 
@@ -469,7 +467,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         return pendingBalance[account].committedAmount;
     }
 
-    //todo add assertion
     function getPendingAccountToDeposit(address account) external view returns (address) {
         return pendingBalance[account].account;
     }
@@ -482,7 +479,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
         return ownerToDeposit[owner].commitment;
     }
 
-    //todo add assertion
     function getOwnerAccounts(address owner) external view returns (address[] memory){
         return ownerToDeposit[owner].accounts;
     }
