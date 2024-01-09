@@ -311,12 +311,10 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
         delete pendingBalance[account].commitment;
         delete pendingBalance[account].committedAmount;
-        //todo add assertion
         delete pendingBalance[account].account;
 
         delete ownerToDeposit[caller].commitment;
         delete ownerToDeposit[caller].committedAmount;
-        //todo add assertion
         delete ownerToDeposit[caller].accounts;
 
         emit Clear(_pendingCommitment, account, block.timestamp);
@@ -360,8 +358,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
         delete ownerToDeposit[msg.sender];
 
-        // TODO add assertion for _addAccount like core.getTopAccounts(2);
-        // TODO add getter for balances
         address[] memory accounts = ownerToDepositData.accounts;
         for (uint256 i = 0; i < accounts.length; i++) {
             BalanceData memory balanceData = pendingBalance[accounts[i]];
@@ -477,7 +473,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
     function getPendingAccountToDeposit(address account) external view returns (address) {
         return pendingBalance[account].account;
     }
-
 
     function getOwnerCommittedAmount(address owner) external view returns (uint256) {
         return ownerToDeposit[owner].committedAmount;

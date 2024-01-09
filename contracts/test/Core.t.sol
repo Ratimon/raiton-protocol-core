@@ -66,7 +66,7 @@ contract CoreTest is SharedHarness {
 
         uint256 preClearToBalance = bob.balance;
 
-        clearAndAssertCore(alice, ownerAccounts, ownerAccounts[0], bob, committedAmount);
+        clearAndAssertCore(alice, ownerAccounts, ownerAccounts[0], bob);
         delete ownerAccounts;
 
         assertEq(bob.balance - preClearToBalance, committedAmount);

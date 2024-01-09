@@ -65,7 +65,7 @@ contract SharedHarness is Test {
         assertEq(core.getPendingAccountToCommit(commitment, deployReturns[2].nonce), deployReturns[2].account);
         assertEq(core.getPendingAccountToCommit(commitment, deployReturns[3].nonce), deployReturns[3].account);
 
-        // todo: add assertion for pendingDeposit
+        // todo: add assertion for pendingBalance
 
         vm.stopPrank();
     }
@@ -159,7 +159,7 @@ contract SharedHarness is Test {
     }
 
     address[] emptyArrays ;
-    function clearAndAssertCore(address user, address[] memory preAccounts, address account, address to, uint256 amount) internal {
+    function clearAndAssertCore(address user, address[] memory preAccounts, address account, address to) internal {
         vm.startPrank(user);
 
         assertTrue(core.getPendingCommitmentToDeposit(account) != bytes32(0));
