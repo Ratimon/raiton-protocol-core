@@ -311,7 +311,7 @@ contract SharedHarness is Test {
         assertEq(core.roots( _currentRootIndex  ), root);
         assertEq(core.roots( _currentRootIndex + 1 ), bytes32(0));
 
-        uint256 preWithdrawAccountBalance = core.getBottomAccount().balance;
+        uint256 preWithdrawAccountBalance = core.getBalance(core.getBottomAccount());
 
         core.withdraw(
             partialWithdrawProof,
@@ -332,7 +332,7 @@ contract SharedHarness is Test {
         // TODO fix when scenario of 4 time partial withdrawn
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
 
-        assertEq( preWithdrawAccountBalance - core.getBalance(core.getBottomAccount() ), 0 ether);
+        assertEq( preWithdrawAccountBalance - core.getBalance(core.getBottomAccount()), 0 ether);
 
         vm.stopPrank();
 

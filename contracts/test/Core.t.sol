@@ -76,6 +76,33 @@ contract CoreTest is SharedHarness {
         // core.getTop(2);
     }
 
+    function test_commitExisting_2ndPhase_Callback() external {
+        uint256 newLeafIndex = 0;
+        uint256 denomination = 1 ether;
+        uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
+        (bytes32 newCommitment,, bytes32 newNullifier) =
+            abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
+        bytes32[] memory existingCommitments = new bytes32[](0);
+
+        DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, newCommitment);
+        delete ownerAccounts;
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, newCommitment, deployReturns[0].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, newCommitment, deployReturns[1].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, newCommitment, deployReturns[2].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, newCommitment, deployReturns[3].nonce, committedAmount);
+       
+        depositAndAssertCore(alice, ownerAccounts, newLeafIndex, newNullifier, newCommitment, denomination, existingCommitments);
+
+        (bytes32 nextCommitment,, ) =
+        abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
+
+        delete ownerAccounts;
+        address[] memory committedAccount = commitExistingAndAssertCore(alice, ownerAccounts, nextCommitment);
+        delete ownerAccounts;
+
+        assertEq(core.getBottomAccount(), committedAccount[0]);
+    }
+
     function test_deposit() external {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
@@ -105,7 +132,6 @@ contract CoreTest is SharedHarness {
 
         assertEq(ownerAccounts[3].balance, committedAmount);
         assertEq( core.getBalance(ownerAccounts[3]) , committedAmount);
-
 
         delete ownerAccounts;
     }
@@ -188,31 +214,5 @@ contract CoreTest is SharedHarness {
 
     }
 
-    function test_commitExisting_2ndPhase_Callback() external {
-        uint256 newLeafIndex = 0;
-        uint256 denomination = 1 ether;
-        uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
-        (bytes32 newCommitment,, bytes32 newNullifier) =
-            abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
-        bytes32[] memory existingCommitments = new bytes32[](0);
-
-        DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, newCommitment);
-        delete ownerAccounts;
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, newCommitment, deployReturns[0].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, newCommitment, deployReturns[1].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, newCommitment, deployReturns[2].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, newCommitment, deployReturns[3].nonce, committedAmount);
-       
-        depositAndAssertCore(alice, ownerAccounts, newLeafIndex, newNullifier, newCommitment, denomination, existingCommitments);
-
-        (bytes32 nextCommitment,, ) =
-        abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
-
-        delete ownerAccounts;
-        address[] memory committedAccount = commitExistingAndAssertCore(alice, ownerAccounts, nextCommitment);
-        delete ownerAccounts;
-
-        assertEq(core.getBottomAccount(), committedAccount[0]);
-    }
 
 }
