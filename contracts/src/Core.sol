@@ -358,6 +358,8 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
 
         submittiedCommitments[_pendingCommitment] = true;
 
+        delete ownerToDeposit[msg.sender];
+
         // TODO add assertion for _addAccount like core.getTopAccounts(2);
         // TODO add getter for balances
         address[] memory accounts = ownerToDepositData.accounts;
@@ -371,8 +373,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer , AccountDeployer, NoD
             
             delete pendingBalance[accounts[i]];
         }
-
-        delete ownerToDeposit[msg.sender];
 
         emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
     }

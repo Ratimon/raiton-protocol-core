@@ -185,16 +185,21 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
+    struct DepositStruct {
+        address user;
+        address[] preAccounts;
+        uint256 newLeafIndex;
+        bytes32 nullifier;
+        bytes32 commitment;
+        uint256 committedAmount;
+        uint256 totalDepositAmount;
+        bytes32[] existingCommitments;
+    }
+
     function depositAndAssertCore(
-        address user,
-        address[] memory preAccounts,
-        uint256 newLeafIndex,
-        bytes32 nullifier,
-        bytes32 commitment,
-        uint256 amount,
-        bytes32[] memory existingCommitments
+        DepositStruct memory depositStruct
     ) internal returns (bytes32[] memory pushedCommitments)  {
-        vm.startPrank(user);
+        vm.startPrank(depositStruct.user);
 
         Core.Proof memory depositProof;
         bytes32 newRoot;
@@ -202,12 +207,12 @@ contract SharedHarness is Test {
             (depositProof, newRoot) = abi.decode(
                 getDepositProve(
                     GetDepositProveStruct(
-                        newLeafIndex,
+                        depositStruct.newLeafIndex,
                         core.roots(core.currentRootIndex()),
-                        amount,
-                        nullifier, //secret
-                        commitment,
-                        existingCommitments
+                        depositStruct.totalDepositAmount,
+                        depositStruct.nullifier, //secret
+                        depositStruct.commitment,
+                        depositStruct.existingCommitments
                     )
                 ),
                 (Core.Proof, bytes32)
@@ -220,16 +225,22 @@ contract SharedHarness is Test {
         assertEq(core.roots( _currentRootIndex), 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb );
         assertEq(core.roots( _currentRootIndex + 1 ), bytes32(0));
 
-        assertFalse(core.getSubmittiedCommitment(commitment));
+        assertFalse(core.getSubmittiedCommitment(depositStruct.commitment));
 
-        assertTrue(core.getOwnerCommitment(user) != bytes32(0));
-        assertTrue(core.getOwnerCommittedAmount(user) != 0);
-        assertEq(core.getOwnerAccounts(user), preAccounts);
+        assertTrue(core.getOwnerCommitment(depositStruct.user) != bytes32(0));
+        assertTrue(core.getOwnerCommittedAmount(depositStruct.user) != 0);
+        assertEq(core.getOwnerAccounts(depositStruct.user), depositStruct.preAccounts);
+
+
+        uint256[] memory preDepositAccountBalances = new uint256[](depositStruct.preAccounts.length);
+        for (uint256 i = 0; i < depositStruct.preAccounts.length; i++) {
+            preDepositAccountBalances[i] = core.getBalance(depositStruct.preAccounts[i]);
+        }
 
         //todo: assert emit
         core.deposit(depositProof, newRoot);
 
-        assertTrue(core.getSubmittiedCommitment(commitment));
+        assertTrue(core.getSubmittiedCommitment(depositStruct.commitment));
 
         assertEq(core.roots( core.currentRootIndex()), newRoot);
         assertEq( core.currentRootIndex(), _currentRootIndex + 1);
@@ -237,24 +248,29 @@ contract SharedHarness is Test {
         {
             // assert tree root and elements are correct
             (bytes32 preDepositRoot, uint256 elements, bytes32 postDepositRoot) =
-                getJsTreeAssertions(existingCommitments, commitment);
-            assertEq(preDepositRoot, core.roots(newLeafIndex));
+                getJsTreeAssertions(depositStruct.existingCommitments, depositStruct.commitment);
+            assertEq(preDepositRoot, core.roots(depositStruct.newLeafIndex));
             assertEq(elements, core.nextIndex());
-            assertEq(postDepositRoot, core.roots(newLeafIndex + 1));
+            assertEq(postDepositRoot, core.roots(depositStruct.newLeafIndex + 1));
         }
 
-        assertEq(core.getOwnerCommitment(user), bytes32(0));
-        assertEq(core.getOwnerCommittedAmount(user), 0);
+        assertEq(core.getOwnerCommitment(depositStruct.user), bytes32(0));
+        assertEq(core.getOwnerCommittedAmount(depositStruct.user), 0);
         delete emptyArrays;
-        assertEq(core.getOwnerAccounts(user), emptyArrays);
+        assertEq(core.getOwnerAccounts(depositStruct.user), emptyArrays);
+
+        for (uint256 i = 0; i < depositStruct.preAccounts.length; i++) {
+            assertEq( core.getBalance(depositStruct.preAccounts[i]), preDepositAccountBalances[i] + depositStruct.committedAmount);
+        }
+        delete preDepositAccountBalances;
 
         vm.stopPrank();
 
-        pushedCommitments = new bytes32[](existingCommitments.length + 1);
-        for (uint256 i = 0; i < existingCommitments.length; i++) {
-            pushedCommitments[i] = existingCommitments[i];
+        pushedCommitments = new bytes32[](depositStruct.existingCommitments.length + 1);
+        for (uint256 i = 0; i < depositStruct.existingCommitments.length; i++) {
+            pushedCommitments[i] = depositStruct.existingCommitments[i];
         }
-        pushedCommitments[pushedCommitments.length-1] = commitment;
+        pushedCommitments[pushedCommitments.length-1] = depositStruct.commitment;
         return pushedCommitments;
     }
 
