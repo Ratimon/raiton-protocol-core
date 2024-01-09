@@ -64,8 +64,12 @@ contract CoreTest is SharedHarness {
         delete ownerAccounts;
         ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
 
+        uint256 preClearToBalance = bob.balance;
+
         clearAndAssertCore(alice, ownerAccounts, ownerAccounts[0], bob, committedAmount);
         delete ownerAccounts;
+
+        assertEq(bob.balance - preClearToBalance, committedAmount);
 
         // / Todo move this block to deposit
         // vm.expectRevert(bytes("SortedList: k must be > than list size"));
@@ -89,6 +93,7 @@ contract CoreTest is SharedHarness {
         
         depositAndAssertCore(alice, ownerAccounts, newLeafIndex, nullifier, commitment, denomination, existingCommitments);
 
+        //todo move this block inside harness
         assertEq(ownerAccounts[0].balance, committedAmount);
         assertEq( core.getBalance(ownerAccounts[0]) , committedAmount);
 

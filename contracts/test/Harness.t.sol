@@ -13,7 +13,6 @@ import {BalanceAccount} from "@main/BalanceAccount.sol";
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 import {Groth16Verifier as PartialWithdrawVerifier} from "@main/verifiers/PartialWithdrawVerifier.sol";
 
-
 contract SharedHarness is Test {
     string mnemonic = "test test test test test test test test test test test junk";
     uint256 deployerPrivateKey = vm.deriveKey(mnemonic, "m/44'/60'/0'/0/", 1); //  address = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
@@ -171,8 +170,6 @@ contract SharedHarness is Test {
 
         assertEq(core.getOwnerAccounts(user), preAccounts);
 
-        uint256 preClearToBalance = to.balance;
-
         IAccount balanceAccount = IAccount(account);
         balanceAccount.clear_commitment(payable(to));
 
@@ -184,8 +181,6 @@ contract SharedHarness is Test {
 
         delete emptyArrays;
         assertEq(core.getOwnerAccounts(user), emptyArrays);
-
-        assertEq(to.balance - preClearToBalance, amount);
 
         vm.stopPrank();
     }
