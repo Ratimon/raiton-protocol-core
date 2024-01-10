@@ -29,16 +29,19 @@ contract BalanceAccountTest is SharedHarness {
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
 
-        assertAccount(alice, deployReturns[0].account, commitment, denomination, deployReturns[0].nonce, inflow, outflow);
+        assertAccount(
+            alice, deployReturns[0].account, commitment, denomination, deployReturns[0].nonce, inflow, outflow
+        );
         assertAccount(bob, deployReturns[1].account, commitment, denomination, deployReturns[1].nonce, inflow, outflow);
-        assertAccount(carol, deployReturns[2].account, commitment, denomination, deployReturns[2].nonce, inflow, outflow);
+        assertAccount(
+            carol, deployReturns[2].account, commitment, denomination, deployReturns[2].nonce, inflow, outflow
+        );
         assertAccount(dave, deployReturns[3].account, commitment, denomination, deployReturns[3].nonce, inflow, outflow);
 
         vm.stopPrank();
     }
 
     function test_commitNew_2ndPhase() external {
-
         uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
         startHoax(alice, committedAmount);
 
@@ -61,7 +64,6 @@ contract BalanceAccountTest is SharedHarness {
     }
 
     function test_clear_commitment() external {
-
         uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
         startHoax(alice, committedAmount);
 

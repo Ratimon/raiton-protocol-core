@@ -47,11 +47,15 @@ contract SharedHarness is Test {
         address account;
         uint256 nonce;
     }
-    function deployAndAssertCore(address user, bytes32 commitment) internal returns (DeployReturnStruct[] memory deployReturns) {
+
+    function deployAndAssertCore(address user, bytes32 commitment)
+        internal
+        returns (DeployReturnStruct[] memory deployReturns)
+    {
         vm.startPrank(user);
 
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
-       
+
         deployReturns = new DeployReturnStruct[](accounts.length);
         IAccount account;
         for (uint256 i = 0; i < accounts.length; i++) {
@@ -73,7 +77,15 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
-    function assertAccount(address user, address account, bytes32 commitment, uint256 amount, uint256 nonce , uint256 inflow, uint256 outflow) internal {
+    function assertAccount(
+        address user,
+        address account,
+        bytes32 commitment,
+        uint256 amount,
+        uint256 nonce,
+        uint256 inflow,
+        uint256 outflow
+    ) internal {
         vm.startPrank(user);
 
         IAccount balanceAccount = IAccount(account);
@@ -87,10 +99,14 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
-    function commitNewAndAssertCore(address user, address[] memory preAccounts, address newAccount, bytes32 commitment, uint256 nonce, uint256 amount)
-        internal
-        returns (address[] memory postAccounts)
-    {
+    function commitNewAndAssertCore(
+        address user,
+        address[] memory preAccounts,
+        address newAccount,
+        bytes32 commitment,
+        uint256 nonce,
+        uint256 amount
+    ) internal returns (address[] memory postAccounts) {
         startHoax(user, amount);
 
         assertEq(core.getPendingAccountToCommit(commitment, nonce), newAccount);
@@ -140,7 +156,8 @@ contract SharedHarness is Test {
 
         assertEq(core.getOwnerAccounts(user), preAccounts);
 
-        uint256 returningAmount = IAccount(bottomAccount).commitExisting_2ndPhase{value: amountToCommit}(alice, newCommitment);
+        uint256 returningAmount =
+            IAccount(bottomAccount).commitExisting_2ndPhase{value: amountToCommit}(alice, newCommitment);
         assertEq(returningAmount, amountToCommit);
 
         assertEq(core.getPendingCommitmentToDeposit(bottomAccount), newCommitment);
@@ -161,7 +178,8 @@ contract SharedHarness is Test {
         return postAccounts;
     }
 
-    address[] emptyArrays ;
+    address[] emptyArrays;
+
     function clearAndAssertCore(address user, address[] memory preAccounts, address account, address to) internal {
         vm.startPrank(user);
 
@@ -199,9 +217,10 @@ contract SharedHarness is Test {
         bytes32[] existingCommitments;
     }
 
-    function depositAndAssertCore(
-        DepositStruct memory depositStruct
-    ) internal returns (bytes32[] memory pushedCommitments)  {
+    function depositAndAssertCore(DepositStruct memory depositStruct)
+        internal
+        returns (bytes32[] memory pushedCommitments)
+    {
         vm.startPrank(depositStruct.user);
 
         Core.Proof memory depositProof;
@@ -225,15 +244,14 @@ contract SharedHarness is Test {
         uint128 _currentRootIndex = core.currentRootIndex();
         //initialRootZero
         // todo: handle case when it is not 'initialRootZero'
-        assertEq(core.roots( _currentRootIndex), 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb );
-        assertEq(core.roots( _currentRootIndex + 1 ), bytes32(0));
+        assertEq(core.roots(_currentRootIndex), 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb);
+        assertEq(core.roots(_currentRootIndex + 1), bytes32(0));
 
         assertFalse(core.getSubmittiedCommitment(depositStruct.commitment));
 
         assertTrue(core.getOwnerCommitment(depositStruct.user) != bytes32(0));
         assertTrue(core.getOwnerCommittedAmount(depositStruct.user) != 0);
         assertEq(core.getOwnerAccounts(depositStruct.user), depositStruct.preAccounts);
-
 
         uint256[] memory preDepositAccountBalances = new uint256[](depositStruct.preAccounts.length);
         for (uint256 i = 0; i < depositStruct.preAccounts.length; i++) {
@@ -245,8 +263,8 @@ contract SharedHarness is Test {
 
         assertTrue(core.getSubmittiedCommitment(depositStruct.commitment));
 
-        assertEq(core.roots( core.currentRootIndex()), newRoot);
-        assertEq( core.currentRootIndex(), _currentRootIndex + 1);
+        assertEq(core.roots(core.currentRootIndex()), newRoot);
+        assertEq(core.currentRootIndex(), _currentRootIndex + 1);
 
         {
             // assert tree root and elements are correct
@@ -263,7 +281,10 @@ contract SharedHarness is Test {
         assertEq(core.getOwnerAccounts(depositStruct.user), emptyArrays);
 
         for (uint256 i = 0; i < depositStruct.preAccounts.length; i++) {
-            assertEq( core.getBalance(depositStruct.preAccounts[i]), preDepositAccountBalances[i] + depositStruct.committedAmount);
+            assertEq(
+                core.getBalance(depositStruct.preAccounts[i]),
+                preDepositAccountBalances[i] + depositStruct.committedAmount
+            );
         }
         delete preDepositAccountBalances;
 
@@ -273,7 +294,7 @@ contract SharedHarness is Test {
         for (uint256 i = 0; i < depositStruct.existingCommitments.length; i++) {
             pushedCommitments[i] = depositStruct.existingCommitments[i];
         }
-        pushedCommitments[pushedCommitments.length-1] = depositStruct.commitment;
+        pushedCommitments[pushedCommitments.length - 1] = depositStruct.commitment;
         return pushedCommitments;
     }
 
@@ -291,9 +312,11 @@ contract SharedHarness is Test {
         uint256 fee;
         bytes32[] pushedCommitments;
     }
-    function partialWithdrawAndAssertCore(
-        PartialWithdrawStruct memory partialWithdrawStruct
-    ) internal returns(bytes32[] memory pushedCommitments) {
+
+    function partialWithdrawAndAssertCore(PartialWithdrawStruct memory partialWithdrawStruct)
+        internal
+        returns (bytes32[] memory pushedCommitments)
+    {
         vm.startPrank(partialWithdrawStruct.relayer);
 
         Core.Proof memory partialWithdrawProof;
@@ -305,19 +328,17 @@ contract SharedHarness is Test {
                     GetPartialWithdrawProveStruct(
                         partialWithdrawStruct.newLeafIndex,
                         partialWithdrawStruct.nextLeafIndex,
-                        partialWithdrawStruct.nullifier, 
+                        partialWithdrawStruct.nullifier,
                         partialWithdrawStruct.newNullifier, // new nullifier
                         partialWithdrawStruct.nullifierHash,
                         partialWithdrawStruct.commitment, // new commitment
                         partialWithdrawStruct.denomination, // amount = denomination
                         partialWithdrawStruct.user, //recipient
                         partialWithdrawStruct.amountToWithdraw, // amount = denomination / payment number
-                        // partialWithdrawStruct.denomination, // amount = denomination / payment number
                         relayer_signer,
                         partialWithdrawStruct.fee, // fee
                         partialWithdrawStruct.pushedCommitments
                     )
-
                 ),
                 (Core.Proof, bytes32, bytes32)
             );
@@ -327,14 +348,14 @@ contract SharedHarness is Test {
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
 
         uint128 _currentRootIndex = core.currentRootIndex();
-        assertEq(core.roots( _currentRootIndex  ), root);
-        assertEq(core.roots( _currentRootIndex + 1 ), bytes32(0));
+        assertEq(core.roots(_currentRootIndex), root);
+        assertEq(core.roots(_currentRootIndex + 1), bytes32(0));
 
         uint256 preWithdrawAccountBalance = core.getBalance(core.getBottomAccount());
 
         core.withdraw(
             partialWithdrawProof,
-            root, 
+            root,
             partialWithdrawStruct.nullifierHash,
             partialWithdrawStruct.commitment,
             newRoot,
@@ -343,7 +364,7 @@ contract SharedHarness is Test {
             partialWithdrawStruct.fee // fee
         );
 
-        assertEq(core.roots( core.currentRootIndex() - 1 ), root);
+        assertEq(core.roots(core.currentRootIndex() - 1), root);
         assertEq(core.roots(core.currentRootIndex()), newRoot);
         assertEq(core.currentRootIndex(), _currentRootIndex + 1);
 
@@ -351,7 +372,7 @@ contract SharedHarness is Test {
         // TODO fix when scenario of 4 time partial withdrawn
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
 
-        assertEq( preWithdrawAccountBalance - core.getBalance(core.getBottomAccount()), 0 ether);
+        assertEq(preWithdrawAccountBalance - core.getBalance(core.getBottomAccount()), 0 ether);
 
         vm.stopPrank();
 
@@ -359,10 +380,9 @@ contract SharedHarness is Test {
         for (uint256 i = 0; i < partialWithdrawStruct.pushedCommitments.length; i++) {
             pushedCommitments[i] = partialWithdrawStruct.pushedCommitments[i];
         }
-        pushedCommitments[pushedCommitments.length-1] = partialWithdrawStruct.commitment;
+        pushedCommitments[pushedCommitments.length - 1] = partialWithdrawStruct.commitment;
 
         return pushedCommitments;
-
     }
 
     function getDepositCommitmentHash(uint256 leafIndex, uint256 denomination) internal returns (bytes memory) {
@@ -384,9 +404,7 @@ contract SharedHarness is Test {
         bytes32[] pushedCommitments;
     }
 
-    function getDepositProve(
-        GetDepositProveStruct memory getDepositProveStruct
-    ) internal returns (bytes memory) {
+    function getDepositProve(GetDepositProveStruct memory getDepositProveStruct) internal returns (bytes memory) {
         string[] memory inputs = new string[](9);
         inputs[0] = "node";
         inputs[1] = "test/utils/getDepositProve.cjs";
@@ -445,9 +463,7 @@ contract SharedHarness is Test {
     }
 
     // todo adding @ notice
-    function getPartialWithdrawProve(
-        GetPartialWithdrawProveStruct memory getPartialWithdrawProveStruct
-    )
+    function getPartialWithdrawProve(GetPartialWithdrawProveStruct memory getPartialWithdrawProveStruct)
         internal
         returns (bytes memory)
     {
@@ -471,7 +487,6 @@ contract SharedHarness is Test {
         bytes memory result = vm.ffi(inputs);
         return result;
     }
-
 
     function getJsTreeAssertions(bytes32[] memory pushedCommitments, bytes32 newCommitment)
         internal

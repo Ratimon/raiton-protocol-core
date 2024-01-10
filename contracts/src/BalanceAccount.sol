@@ -7,7 +7,6 @@ import {IAccountDeployer} from "@main/interfaces/IAccountDeployer.sol";
 
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-
 // TODO Add interface
 // TODO abstract into 2 types annuoty and endowmwnt
 // TODO define invariant
@@ -57,11 +56,15 @@ contract BalanceAccount {
         _;
     }
 
-     /**
+    /**
      * @dev add deposit to another "balanceAccount", callable from router
      */
-    function commitExisting_2ndPhase(address sender, bytes32 newCommmitment) external payable inStatus(Status.COMMITTED) returns (uint256) {
-
+    function commitExisting_2ndPhase(address sender, bytes32 newCommmitment)
+        external
+        payable
+        inStatus(Status.COMMITTED)
+        returns (uint256)
+    {
         // address router;
         // require(msg.sender == router, "BalanceAccount:  only callable from router ");
 
@@ -72,9 +75,11 @@ contract BalanceAccount {
 
         require(msg.value == currentAmountIn, "BalanceAccount: Incorrect amountIn");
         currentBalance += currentAmountIn;
-        
+
         bytes32 existingCommitment = commitment;
-        core.commitExisting_2ndPhase_Callback(sender, address(this), existingCommitment, newCommmitment, nonce, currentAmountIn);
+        core.commitExisting_2ndPhase_Callback(
+            sender, address(this), existingCommitment, newCommmitment, nonce, currentAmountIn
+        );
 
         // _updateparams();
         commitment = newCommmitment;
@@ -83,7 +88,6 @@ contract BalanceAccount {
         _processDeposit();
 
         return currentAmountIn;
-
     }
 
     function commitNew_2ndPhase() external payable inStatus(Status.UNCOMMITTED) returns (uint256) {
@@ -95,7 +99,9 @@ contract BalanceAccount {
         // pendingCommit[msg.sender] = _commitment;
         currentStatus = Status.COMMITTED;
         currentBalance += amountIn;
-        IPoolsCounterBalancer(factory).commitNew_2ndPhase_Callback(msg.sender, address(this), commitment, nonce, amountIn);
+        IPoolsCounterBalancer(factory).commitNew_2ndPhase_Callback(
+            msg.sender, address(this), commitment, nonce, amountIn
+        );
         _processDeposit();
 
         return amountIn;

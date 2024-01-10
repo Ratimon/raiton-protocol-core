@@ -30,7 +30,8 @@ contract CoreTest is SharedHarness {
         deployAndAssertCore(alice, commitment);
     }
 
-    address[] ownerAccounts ;
+    address[] ownerAccounts;
+
     function test_commitNew_2ndPhase_Callback() external {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
@@ -44,12 +45,15 @@ contract CoreTest is SharedHarness {
         // todo fix amount
         // todo: assert emit
         delete ownerAccounts;
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts,  deployReturns[0].account, commitment, 0, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, commitment, 1, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, commitment, 2, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, 3, committedAmount);
+        ownerAccounts =
+            commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, commitment, 0, committedAmount);
+        ownerAccounts =
+            commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, commitment, 1, committedAmount);
+        ownerAccounts =
+            commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, commitment, 2, committedAmount);
+        ownerAccounts =
+            commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, 3, committedAmount);
         delete ownerAccounts;
-
     }
 
     function test_clear_commitment_Callback() external {
@@ -62,7 +66,9 @@ contract CoreTest is SharedHarness {
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
 
         delete ownerAccounts;
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount
+        );
 
         uint256 preClearToBalance = bob.balance;
 
@@ -86,11 +92,19 @@ contract CoreTest is SharedHarness {
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, newCommitment);
         delete ownerAccounts;
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, newCommitment, deployReturns[0].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, newCommitment, deployReturns[1].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, newCommitment, deployReturns[2].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, newCommitment, deployReturns[3].nonce, committedAmount);
-       
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[0].account, newCommitment, deployReturns[0].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[1].account, newCommitment, deployReturns[1].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[2].account, newCommitment, deployReturns[2].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[3].account, newCommitment, deployReturns[3].nonce, committedAmount
+        );
+
         depositAndAssertCore(
             DepositStruct(
                 alice,
@@ -104,8 +118,8 @@ contract CoreTest is SharedHarness {
             )
         );
 
-        (bytes32 nextCommitment,, ) =
-        abi.decode(getDepositCommitmentHash(newLeafIndex, totalDepositAmount), (bytes32, bytes32, bytes32));
+        (bytes32 nextCommitment,,) =
+            abi.decode(getDepositCommitmentHash(newLeafIndex, totalDepositAmount), (bytes32, bytes32, bytes32));
 
         delete ownerAccounts;
         address[] memory committedAccount = commitExistingAndAssertCore(alice, ownerAccounts, nextCommitment);
@@ -124,10 +138,18 @@ contract CoreTest is SharedHarness {
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
         delete ownerAccounts;
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount
+        );
 
         depositAndAssertCore(
             DepositStruct(
@@ -144,10 +166,8 @@ contract CoreTest is SharedHarness {
 
         delete ownerAccounts;
     }
-    
 
     function test_partial_withdraw() external {
-
         uint256 newLeafIndex = 0;
         uint256 totalDepositAmount = 1 ether;
         uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
@@ -156,17 +176,25 @@ contract CoreTest is SharedHarness {
         bytes32 commitment;
         bytes32 nullifierHash;
         bytes32 nullifier;
-        ( commitment,  nullifierHash, nullifier) =
+        (commitment, nullifierHash, nullifier) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, totalDepositAmount), (bytes32, bytes32, bytes32));
         bytes32[] memory existingCommitments = new bytes32[](0);
 
         DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
         delete ownerAccounts;
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[0].account , commitment, deployReturns[0].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount);
-        ownerAccounts = commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount);
-        
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount
+        );
+
         bytes32[] memory pushedCommitments = depositAndAssertCore(
             DepositStruct(
                 alice,
@@ -185,8 +213,8 @@ contract CoreTest is SharedHarness {
         bytes32 newNullifierHash;
         bytes32 newNullifier;
         // uint256 nextLeafIndex = 1;
-        ( newCommitment, newNullifierHash, newNullifier) =
-            abi.decode(getDepositCommitmentHash(1, 0.75 ether ), (bytes32, bytes32, bytes32));
+        (newCommitment, newNullifierHash, newNullifier) =
+            abi.decode(getDepositCommitmentHash(1, 0.75 ether), (bytes32, bytes32, bytes32));
 
         uint256 preWithdrawToBalance = alice.balance;
 
@@ -194,8 +222,8 @@ contract CoreTest is SharedHarness {
             PartialWithdrawStruct(
                 relayer_signer,
                 alice,
-                0,  //newLeafIndex 0
-                1,  //nextLeafIndex 1
+                0, //newLeafIndex 0
+                1, //nextLeafIndex 1
                 nullifier,
                 newNullifier,
                 nullifierHash, // from first commitment
@@ -209,14 +237,13 @@ contract CoreTest is SharedHarness {
 
         nullifier = newNullifier;
         // nextLeafIndex = 2;
-        ( newCommitment, , newNullifier) =
-            abi.decode(getDepositCommitmentHash(2, 0.5 ether ), (bytes32, bytes32, bytes32));
+        (newCommitment,, newNullifier) = abi.decode(getDepositCommitmentHash(2, 0.5 ether), (bytes32, bytes32, bytes32));
 
         partialWithdrawAndAssertCore(
             PartialWithdrawStruct(
                 relayer_signer,
                 alice,
-                1,  //newLeafIndex = 1
+                1, //newLeafIndex = 1
                 2, //nextLeafIndex = 2
                 nullifier,
                 newNullifier,
@@ -230,9 +257,6 @@ contract CoreTest is SharedHarness {
         );
 
         //todo abstract committedAmount
-        assertEq( alice.balance - preWithdrawToBalance, committedAmount + committedAmount);
-
+        assertEq(alice.balance - preWithdrawToBalance, committedAmount + committedAmount);
     }
-
-
 }

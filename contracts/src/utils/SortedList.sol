@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-
 contract SortedList {
     mapping(address => uint256) private balances;
     mapping(address => address) private _nextAccounts;
