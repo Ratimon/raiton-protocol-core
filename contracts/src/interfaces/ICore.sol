@@ -17,9 +17,11 @@ interface ICore {
 
     function getOwnerAccounts(address owner) external view returns (address[] memory);
 
-    function getWithdrawnAmount(bytes32 nullifierHash) external view returns (uint256);
+    function getWithdrawnAmount(address owner) external view returns (uint256);
 
-    function getIsNullified(bytes32 nullifierHash) external view returns (bool);
+    function getLastWithdrawTime(address owner) external view returns (uint256);
+
+    function getIsNullified(bytes32 nullifier) external view returns (bool);
 
     // function getBottomAccount() external view returns (address);
 

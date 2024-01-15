@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
+import {console2} from "@forge-std/console2.sol";
+
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {IAccount} from "@main/interfaces/IAccount.sol";
@@ -57,7 +59,11 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     mapping(bytes32 => bool) public submittiedCommitments;
 
     // Withdraw Side:
-    mapping(bytes32 => WithdrawData) private nullifierHashToWithdraw;
+    mapping(address => WithdrawData) ownerToWithdraw;
+
+    // todo remove
+    mapping(bytes32 => bool) public nullifierHashes;
+    mapping(bytes32 => bool) public pendingNullifierHashes;
 
     mapping(address => address) public accountToOracle;
 
@@ -88,9 +94,13 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     }
 
     // TODO change withdrawnAmount to just Counter
+    // TODO addd owner?
     struct WithdrawData {
         uint256 withdrawnAmount;
-        bool isNullified;
+        bytes32 previousNullifierHash;
+        // bytes32 nullifierHash;
+        uint256 lastUpdateTime;
+        // bool isNullified;
     }
 
     struct Proof {
@@ -370,6 +380,32 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
     }
 
+    function init_withdrawProcess(bytes32 nullifierHash, address recipient) external {
+
+
+
+        WithdrawData storage withdrawData = ownerToWithdraw[recipient];
+        // require(!withdrawData.isNullified, "Core: Already Withdraw");
+
+        require(withdrawData.withdrawnAmount == 0, "Core: No Withdrawn Amount Yet");
+        require(!pendingNullifierHashes[nullifierHash], "Core: the reference consumned");
+
+        withdrawData.lastUpdateTime = block.timestamp;
+
+        // ownerToWithdraw[nullifierHAsh] ?
+        // solve problem when sybill time
+
+        // withdrawData.previousNullifierHash = nullifierHash;
+
+        pendingNullifierHashes[nullifierHash] = true;
+
+
+        console2.log(" -- block.timestamp",  block.timestamp);
+        console2.log(" -- withdrawData.lastUpdateTime",  withdrawData.lastUpdateTime);
+
+        //todo inplement fee
+    }
+
     /**
      * @dev let users make withdrawals where a note (commitment hash) is consumed and the change is redeposited into a new leaf node which the withdrawer is assumed to know the preimage of the commitment hash of.
      */
@@ -385,10 +421,30 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     ) external {
         require(isKnownRoot(_root), "Core: No merkle root found"); // Make sure to use a recent one
 
-        WithdrawData storage withdrawData = nullifierHashToWithdraw[_nullifierHash];
+        WithdrawData storage withdrawData = ownerToWithdraw[_recipient];
 
-        require(!withdrawData.isNullified, "Core: Already ");
+        // todo remove/switch lines
+        require(!nullifierHashes[_nullifierHash], "Core: The note has been already spent");
+        
         require(withdrawData.withdrawnAmount < denomination, "Core: Withdrawn Amount already exceeded");
+        console2.log("withdrawData.lastUpdateTime ", withdrawData.lastUpdateTime);
+        require( withdrawData.lastUpdateTime != 0, "Core: Must initiate the process first" );
+        require( (block.timestamp - withdrawData.lastUpdateTime > 1 days), "Core: Withdrawal period not reached" );
+
+        // require(!withdrawData.isNullified, "Core: Already Withdraw All");
+
+        // bool isFirstWithdraw = withdrawData.withdrawnAmount == 0;
+        // uint256 period = 1 days;
+
+        // console2.lo"(block.timestamp - withdrawData.lastUpdateTime > 1 days", block.timestamp - withdrawData.lastUpdateTime > 1 days);
+        
+        // console2.log(g("after verifier");
+        // console2.log("withdrawData.withdrawnAmount == 0", withdrawData.withdrawnAmount == 0);
+
+
+        //todo if first time withdraw then
+        //todo if first 2nd-4th withdraw then check if its data field is still = firstNullifierHash
+
 
         uint256 amountOut = denomination / paymentNumber;
         // uint256 amountOut = denomination ;
@@ -420,10 +476,38 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         uint256 _nextIndex = nextIndex;
         nextIndex += 1;
 
-        withdrawData.withdrawnAmount += amountOut;
 
+        if(withdrawData.withdrawnAmount  == 0) {
+            require ( pendingNullifierHashes[_nullifierHash], "Core: the reference consumned-0");
+            
+        } else {
+            require ( pendingNullifierHashes[withdrawData.previousNullifierHash], "Core: the reference consumned -1");
+        }
+
+        // todo: ?
+        withdrawData.previousNullifierHash = _nullifierHash;
+        pendingNullifierHashes[_nullifierHash] = true;
+
+        withdrawData.withdrawnAmount += amountOut;
+        withdrawData.lastUpdateTime = block.timestamp;
+
+        nullifierHashes[_nullifierHash] = true;
+
+        // if(withdrawData.withdrawnAmount  == denomination) {
+        //     require ( isFirstNullifierHashesUsed[withdrawData.firstNullifierHash], "Core: the reference consumned -1");
+        // } else if (withdrawData.withdrawnAmount  < denomination) {
+        //     console2.log(" isFirstNullifierHashesUsed[_nullifierHash]",  isFirstNullifierHashesUsed[_nullifierHash]);
+        //     require ( isFirstNullifierHashesUsed[_nullifierHash], "Core: the reference consumned-2");
+            
+        // }
+
+        // todo fix sybill or remove as already inited
+        // end the cycle (after final withdraw)
         if (withdrawData.withdrawnAmount == denomination) {
-            withdrawData.isNullified = true;
+            // withdrawData.isNullified = true;
+            // nullifierHashes[_nullifierHash] = true;
+            delete withdrawData.lastUpdateTime;
+            delete withdrawData.previousNullifierHash;
         }
 
         // todo add rule to use whether getBottomAccount() or getTop()
@@ -485,12 +569,17 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         return submittiedCommitments[commitment];
     }
 
-    function getWithdrawnAmount(bytes32 nullifierHash) external view returns (uint256) {
-        return nullifierHashToWithdraw[nullifierHash].withdrawnAmount;
+    function getWithdrawnAmount(address owner) external view returns (uint256) {
+        return ownerToWithdraw[owner].withdrawnAmount;
     }
 
-    function getIsNullified(bytes32 nullifierHash) external view returns (bool) {
-        return nullifierHashToWithdraw[nullifierHash].isNullified;
+    function getLastWithdrawTime(address owner) external view returns (uint256) {
+        return ownerToWithdraw[owner].lastUpdateTime;
+    }
+
+    function getIsNullified(bytes32 nullifier) external view returns (bool) {
+        // return ownerToWithdraw[owner].isNullified;
+        return nullifierHashes[nullifier];
     }
 
     function isKnownRoot(bytes32 _root) public view returns (bool) {

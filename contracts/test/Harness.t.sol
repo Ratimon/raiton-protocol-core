@@ -241,11 +241,11 @@ contract SharedHarness is Test {
             );
         }
 
-        uint128 _currentRootIndex = core.currentRootIndex();
+        uint128 _preRootIndex = core.currentRootIndex();
         //initialRootZero
         // todo: handle case when it is not 'initialRootZero'
-        assertEq(core.roots(_currentRootIndex), 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb);
-        assertEq(core.roots(_currentRootIndex + 1), bytes32(0));
+        assertEq(core.roots(_preRootIndex), 0x2b0f6fc0179fa65b6f73627c0e1e84c7374d2eaec44c9a48f2571393ea77bcbb);
+        assertEq(core.roots(_preRootIndex + 1), bytes32(0));
 
         assertFalse(core.getSubmittiedCommitment(depositStruct.commitment));
 
@@ -264,7 +264,7 @@ contract SharedHarness is Test {
         assertTrue(core.getSubmittiedCommitment(depositStruct.commitment));
 
         assertEq(core.roots(core.currentRootIndex()), newRoot);
-        assertEq(core.currentRootIndex(), _currentRootIndex + 1);
+        assertEq(core.currentRootIndex(), _preRootIndex + 1);
 
         {
             // assert tree root and elements are correct
@@ -344,12 +344,15 @@ contract SharedHarness is Test {
             );
         }
 
-        assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), 0);
+       
+        uint256 preWithdrawAmount = core.getWithdrawnAmount(partialWithdrawStruct.user);
+        // 0 ether for 1st time, 0.25 ether for 2nd time
+        assertEq(preWithdrawAmount, 1 ether - partialWithdrawStruct.denomination);
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
 
-        uint128 _currentRootIndex = core.currentRootIndex();
-        assertEq(core.roots(_currentRootIndex), root);
-        assertEq(core.roots(_currentRootIndex + 1), bytes32(0));
+        // uint128 _preRootIndex = core.currentRootIndex();
+        assertEq(core.roots(core.currentRootIndex()), root);
+        assertEq(core.roots(core.currentRootIndex() + 1), bytes32(0));
 
         uint256 preWithdrawAccountBalance = core.getBalance(core.getBottomAccount());
 
@@ -366,11 +369,12 @@ contract SharedHarness is Test {
 
         assertEq(core.roots(core.currentRootIndex() - 1), root);
         assertEq(core.roots(core.currentRootIndex()), newRoot);
-        assertEq(core.currentRootIndex(), _currentRootIndex + 1);
+        // assertEq(core.currentRootIndex(), _preRootIndex + 1);
 
-        assertEq(core.getWithdrawnAmount(partialWithdrawStruct.nullifierHash), partialWithdrawStruct.amountToWithdraw);
+        assertEq(core.getWithdrawnAmount(partialWithdrawStruct.user), preWithdrawAmount + partialWithdrawStruct.amountToWithdraw);
         // TODO fix when scenario of 4 time partial withdrawn
-        assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), false);
+        // assertEq(core.getIsNullified(partialWithdrawStruct.user), false);
+        assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), true);
 
         assertEq(preWithdrawAccountBalance - core.getBalance(core.getBottomAccount()), 0 ether);
 

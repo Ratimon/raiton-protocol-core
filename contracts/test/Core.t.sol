@@ -12,9 +12,15 @@ import {BalanceAccount} from "@main/BalanceAccount.sol";
 import {SharedHarness} from "@test/Harness.t.sol";
 
 contract CoreTest is SharedHarness {
+
+    uint256 public staticTime;
     function setUp() public virtual override {
         super.setUp();
         vm.label(address(this), "CoreTest");
+
+        staticTime = block.timestamp;
+
+        vm.warp({newTimestamp: staticTime});
     }
 
     function test_initiate_1stPhase_Account() external {
@@ -218,6 +224,12 @@ contract CoreTest is SharedHarness {
 
         uint256 preWithdrawToBalance = alice.balance;
 
+        vm.startPrank(alice);
+        core.init_withdrawProcess( nullifierHash, alice);
+        vm.stopPrank();
+
+        vm.warp({newTimestamp: staticTime + 2 days});
+
         pushedCommitments = partialWithdrawAndAssertCore(
             PartialWithdrawStruct(
                 relayer_signer,
@@ -239,14 +251,16 @@ contract CoreTest is SharedHarness {
         // nextLeafIndex = 2;
         (newCommitment,, newNullifier) = abi.decode(getDepositCommitmentHash(2, 0.5 ether), (bytes32, bytes32, bytes32));
 
+        vm.warp({newTimestamp: staticTime + 4 days});
+        
         partialWithdrawAndAssertCore(
             PartialWithdrawStruct(
                 relayer_signer,
                 alice,
                 1, //newLeafIndex = 1
                 2, //nextLeafIndex = 2
-                nullifier,
-                newNullifier,
+                nullifier,    // from first commitment
+                newNullifier, // from second commitment
                 newNullifierHash,
                 newCommitment,
                 0.75 ether, // amount left
