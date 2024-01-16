@@ -298,6 +298,26 @@ contract SharedHarness is Test {
         return pushedCommitments;
     }
 
+    function initWithdrawProcessAndAssertCore(address relayer, address user, bytes32 nullifierHash) internal {
+
+        vm.startPrank(relayer);
+
+        // assertEq(core.getPreviousNullifierHash(user) , preNullifierHash);
+        assertTrue(!core.getIsNullifierInited(nullifierHash));
+        assertEq(core.getLastWithdrawTime(user) , 0);
+        
+
+        core.initWithdrawProcess( nullifierHash, user);
+
+        // assertEq(core.getPreviousNullifierHash(user) , postNullifierHash);
+        assertTrue(core.getIsNullifierInited(nullifierHash));
+        assertEq(core.getLastWithdrawTime(user) , block.timestamp);
+
+        vm.stopPrank();
+        
+    }
+
+
     struct PartialWithdrawStruct {
         address relayer;
         address user;

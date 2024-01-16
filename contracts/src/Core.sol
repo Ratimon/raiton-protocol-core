@@ -59,9 +59,9 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     // Withdraw Side:
     mapping(address => WithdrawData) ownerToWithdraw;
 
+    mapping(bytes32 => bool) public pendingNullifierHashes;
     // todo remove
     mapping(bytes32 => bool) public nullifierHashes;
-    mapping(bytes32 => bool) public pendingNullifierHashes;
 
     mapping(address => address) public accountToOracle;
 
@@ -378,7 +378,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
     }
 
-    function init_withdrawProcess(bytes32 nullifierHash, address recipient) external {
+    function initWithdrawProcess(bytes32 nullifierHash, address recipient) external {
         WithdrawData storage withdrawData = ownerToWithdraw[recipient];
         // require(!withdrawData.isNullified, "Core: Already Withdraw");
 
@@ -386,15 +386,9 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         require(!pendingNullifierHashes[nullifierHash], "Core: the reference consumned");
 
         withdrawData.lastUpdateTime = block.timestamp;
-
-        // ownerToWithdraw[nullifierHAsh] ?
-        // solve problem when sybill time
-
-        // withdrawData.previousNullifierHash = nullifierHash;
-
         pendingNullifierHashes[nullifierHash] = true;
 
-        //todo inplement fee
+        //todo inplement charging fee
     }
 
     /**
@@ -545,8 +539,16 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         return ownerToWithdraw[owner].withdrawnAmount;
     }
 
+    function getPreviousNullifierHash(address owner) external view returns (bytes32) {
+        return ownerToWithdraw[owner].previousNullifierHash;
+    }
+
     function getLastWithdrawTime(address owner) external view returns (uint256) {
         return ownerToWithdraw[owner].lastUpdateTime;
+    }
+
+    function getIsNullifierInited(bytes32 nullifier) external view returns (bool) {
+        return pendingNullifierHashes[nullifier];
     }
 
     function getIsNullified(bytes32 nullifier) external view returns (bool) {

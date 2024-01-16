@@ -173,7 +173,57 @@ contract CoreTest is SharedHarness {
         delete ownerAccounts;
     }
 
-    function test_partial_withdraw() external {
+    function test_init_withdrawProcess() external {
+        uint256 newLeafIndex = 0;
+        uint256 totalDepositAmount = 1 ether;
+        uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
+
+        //TODO refactor to harness
+        bytes32 commitment;
+        bytes32 nullifierHash;
+        bytes32 nullifier;
+        (commitment, nullifierHash, nullifier) =
+            abi.decode(getDepositCommitmentHash(newLeafIndex, totalDepositAmount), (bytes32, bytes32, bytes32));
+        bytes32[] memory existingCommitments = new bytes32[](0);
+
+        DeployReturnStruct[] memory deployReturns = deployAndAssertCore(alice, commitment);
+        delete ownerAccounts;
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[0].account, commitment, deployReturns[0].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[1].account, commitment, deployReturns[1].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[2].account, commitment, deployReturns[2].nonce, committedAmount
+        );
+        ownerAccounts = commitNewAndAssertCore(
+            alice, ownerAccounts, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount
+        );
+
+        depositAndAssertCore(
+            DepositStruct(
+                alice,
+                ownerAccounts,
+                newLeafIndex,
+                nullifier,
+                commitment,
+                committedAmount,
+                totalDepositAmount,
+                existingCommitments
+            )
+        );
+        delete ownerAccounts;
+
+        initWithdrawProcessAndAssertCore( relayer_signer, alice, nullifierHash);
+
+    }
+
+    function test_RevertWhen_() external {
+
+    }
+
+    function test_twotimes_withdraw() external {
         uint256 newLeafIndex = 0;
         uint256 totalDepositAmount = 1 ether;
         uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
@@ -225,8 +275,10 @@ contract CoreTest is SharedHarness {
         uint256 preWithdrawToBalance = alice.balance;
 
         vm.startPrank(alice);
-        core.init_withdrawProcess( nullifierHash, alice);
+        core.initWithdrawProcess( nullifierHash, alice);
         vm.stopPrank();
+
+        // initWithdrawProcessAndAssertCore( relayer_signer, alice, bytes32(0) , nullifierHash);
 
         vm.warp({newTimestamp: staticTime + 2 days});
 
@@ -273,4 +325,6 @@ contract CoreTest is SharedHarness {
         //todo abstract committedAmount
         assertEq(alice.balance - preWithdrawToBalance, committedAmount + committedAmount);
     }
+
+
 }
