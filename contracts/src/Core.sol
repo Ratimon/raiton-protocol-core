@@ -385,6 +385,9 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         require(withdrawData.withdrawnAmount == 0, "Core: No Withdrawn Amount Yet");
         require(!pendingNullifierHashes[nullifierHash], "Core: the reference consumned");
 
+        //todo start with full denomination amount
+        //todo so, allow double deposit?
+
         withdrawData.lastUpdateTime = block.timestamp;
         pendingNullifierHashes[nullifierHash] = true;
 
@@ -471,7 +474,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         // end the cycle (after final withdraw)
         if (withdrawData.withdrawnAmount == denomination) {
             // withdrawData.isNullified = true;
-            // nullifierHashes[_nullifierHash] = true;
+            delete withdrawData.withdrawnAmount;
             delete withdrawData.lastUpdateTime;
             delete withdrawData.previousNullifierHash;
         }

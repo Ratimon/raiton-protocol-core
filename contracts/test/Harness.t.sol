@@ -302,14 +302,11 @@ contract SharedHarness is Test {
 
         vm.startPrank(relayer);
 
-        // assertEq(core.getPreviousNullifierHash(user) , preNullifierHash);
         assertTrue(!core.getIsNullifierInited(nullifierHash));
         assertEq(core.getLastWithdrawTime(user) , 0);
-        
 
         core.initWithdrawProcess( nullifierHash, user);
 
-        // assertEq(core.getPreviousNullifierHash(user) , postNullifierHash);
         assertTrue(core.getIsNullifierInited(nullifierHash));
         assertEq(core.getLastWithdrawTime(user) , block.timestamp);
 
@@ -392,6 +389,10 @@ contract SharedHarness is Test {
         // assertEq(core.currentRootIndex(), _preRootIndex + 1);
 
         assertEq(core.getWithdrawnAmount(partialWithdrawStruct.user), preWithdrawAmount + partialWithdrawStruct.amountToWithdraw);
+        // todo add pre state transition
+        assertEq(core.getPreviousNullifierHash(partialWithdrawStruct.user), partialWithdrawStruct.nullifierHash);
+        assertEq(core.getLastWithdrawTime(partialWithdrawStruct.user) , block.timestamp);
+
         // TODO fix when scenario of 4 time partial withdrawn
         // assertEq(core.getIsNullified(partialWithdrawStruct.user), false);
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), true);
