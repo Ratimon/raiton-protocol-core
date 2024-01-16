@@ -173,7 +173,7 @@ contract CoreTest is SharedHarness {
         delete ownerAccounts;
     }
 
-    function test_init_withdrawProcess() external {
+    function test_initWithdrawProcess() external {
         uint256 newLeafIndex = 0;
         uint256 totalDepositAmount = 1 ether;
         uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
@@ -274,12 +274,7 @@ contract CoreTest is SharedHarness {
 
         uint256 preWithdrawToBalance = alice.balance;
 
-        vm.startPrank(alice);
-        core.initWithdrawProcess( nullifierHash, alice);
-        vm.stopPrank();
-
-        // initWithdrawProcessAndAssertCore( relayer_signer, alice, bytes32(0) , nullifierHash);
-
+        initWithdrawProcessAndAssertCore( relayer_signer, alice, nullifierHash);
         vm.warp({newTimestamp: staticTime + 2 days});
 
         pushedCommitments = partialWithdrawAndAssertCore(
