@@ -1,6 +1,7 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
+import {console2} from "@forge-std/console2.sol";
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {IAccount} from "@main/interfaces/IAccount.sol";
@@ -36,6 +37,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     // store all states
     // add a redeployable stateless router to query the address
 
+    //todo use listSize Instead
     uint256 public accountCurrentNumber = 0;
     uint256 public accountSchellingNumber = 1;
     uint256 public accountNumberCumulativeLast;
@@ -452,7 +454,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         roots[newCurrentRootIndex] = _newRoot;
         uint256 _nextIndex = nextIndex;
         nextIndex += 1;
-
 
         if(withdrawData.withdrawnAmount  == 0) {
             require ( pendingNullifierHashes[_nullifierHash], "Core: the reference consumned-0");
