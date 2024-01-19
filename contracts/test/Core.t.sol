@@ -355,11 +355,6 @@ contract CoreTest is SharedHarness {
             alice, ownerAccounts, deployReturns[3].account, commitment, deployReturns[3].nonce, committedAmount
         );
 
-        console2.log(" deployReturns[0].account", deployReturns[0].account);
-        console2.log(" deployReturns[1].account", deployReturns[1].account);
-        console2.log(" deployReturns[2].account", deployReturns[2].account);
-        console2.log(" deployReturns[3].account", deployReturns[3].account);
-
         bytes32[] memory pushedCommitments = depositAndAssertCore(
             DepositStruct(
                 alice,

@@ -38,11 +38,6 @@ contract SharedHarness is Test {
         vm.label(carol, "Carol");
         vm.label(dave, "Dave");
 
-        // console2.log("Alice", alice);
-        // console2.log("Bob", bob);
-        // console2.log("Carol", carol);
-        // console2.log("Dave", dave);
-
         depositVerifier = IDepositVerifier(address(new DepositGroth16Verifier()));
         partialWithdrawVerifier = IPartialWithdrawVerifier(address(new PartialWithdrawVerifier()));
 
@@ -411,8 +406,6 @@ contract SharedHarness is Test {
             assertEq(core.getLastWithdrawTime(partialWithdrawStruct.user) , block.timestamp);
         }
 
-        // assertEq(core.getWithdrawnAmount(partialWithdrawStruct.user), preWithdrawAmount + partialWithdrawStruct.amountToWithdraw);
-
         // todo add pre state transition
         // assertEq(core.getPreviousNullifierHash(partialWithdrawStruct.user), partialWithdrawStruct.nullifierHash);
         // assertEq(core.getLastWithdrawTime(partialWithdrawStruct.user) , block.timestamp);
@@ -420,12 +413,6 @@ contract SharedHarness is Test {
         // TODO fix when scenario of 4 time partial withdrawn
         // assertEq(core.getIsNullified(partialWithdrawStruct.user), false);
         assertEq(core.getIsNullified(partialWithdrawStruct.nullifierHash), true);
-
-        console2.log("preWithdrawAccountBalance", preWithdrawAccountBalance);
-        console2.log("core.getBottomAccount()", core.getBottomAccount());
-        console2.log("core.getBalance(core.getBottomAccount()", core.getBalance(core.getBottomAccount()));
-
-        // assertEq(preWithdrawAccountBalance - core.getBalance(core.getBottomAccount()), 0 ether);
         assertEq(preWithdrawAccountBalance - core.getBalance(partialWithdrawStruct.accountToWithdraw), partialWithdrawStruct.amountToWithdraw);
 
         vm.stopPrank();

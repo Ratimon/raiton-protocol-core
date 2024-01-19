@@ -1,9 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {console2} from "@forge-std/console2.sol";
-
-
 contract SortedList {
     mapping(address => uint256) private balances;
     mapping(address => address) private _nextAccounts;
@@ -42,16 +39,8 @@ contract SortedList {
         _nextAccounts[account] = address(0);
         balances[account] = 0;
 
-        console2.log("remove -prevAccount", prevAccount);
-        console2.log("remove - balances[prevAccount]", balances[prevAccount]);
-        console2.log("remove -lowestAccount", lowestAccount);
-        console2.log("remove - balances[lowestAccount]", balances[lowestAccount]);
-        console2.log("remove - listSize", listSize);
-
         if (_nextAccounts[prevAccount] == GUARD || balances[prevAccount] <= balances[lowestAccount]) {
             lowestAccount = prevAccount;
-            console2.log("remove - account", account);
-            console2.log("remove - lowestAccount", lowestAccount);
         }
 
         listSize--;
