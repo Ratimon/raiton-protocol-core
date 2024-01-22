@@ -5,7 +5,7 @@ contract SortedList {
     mapping(address => uint256) private balances;
     mapping(address => address) private _nextAccounts;
     address private lowestAccount;
-    uint256 private listSize;
+    uint256 internal listSize;
     address constant GUARD = address(99);
 
 

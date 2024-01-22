@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {console2} from "@forge-std/console2.sol";
 import {CallbackValidation} from "@main/libraries/CallbackValidation.sol";
 
 import {IAccount} from "@main/interfaces/IAccount.sol";
@@ -37,13 +36,10 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     // store all states
     // add a redeployable stateless router to query the address
 
-    //todo use listSize Instead
-    uint256 public accountCurrentNumber = 0;
     uint256 public accountSchellingNumber = 1;
     uint256 public accountNumberCumulativeLast;
 
     uint256 public contractBirthRate = 4;
-    // uint256 public contractBirthRate = 0;
 
     uint256 public denomination;
     uint256 public paymentNumber;
@@ -55,14 +51,12 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     // Deposit Side:
     mapping(address => BalanceData) private pendingBalance;
     mapping(address => DepositData) public ownerToDeposit;
-    // TODO review another data field submittiedDeposit
     mapping(bytes32 => bool) public submittiedCommitments;
 
     // Withdraw Side:
     mapping(address => WithdrawData) ownerToWithdraw;
 
     mapping(bytes32 => bool) public pendingNullifierHashes;
-    // todo remove
     mapping(bytes32 => bool) public nullifierHashes;
 
     mapping(address => address) public accountToOracle;
@@ -145,7 +139,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
         require(commitment != bytes32(0), "Core: Invalid commitment");
 
-        require(accountCurrentNumber <= accountSchellingNumber, "Core: Account already exceeds");
+        require(getAccountCurrentNumber() <= accountSchellingNumber, "Core: Account already exceeds");
 
         // TODO : the loop number will depends on the schelling point
         // TODO add more scenarios
@@ -213,7 +207,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
         // ??
         require(commitment != bytes32(0), "Core: Invalid commitment");
-        require(accountCurrentNumber < accountSchellingNumber, "Core: Schelling < CurrentNumber : Do commit via router");
+        require(getAccountCurrentNumber() < accountSchellingNumber, "Core: Schelling < CurrentNumber : Do commit via router");
 
         BalanceData storage balanceData = pendingBalance[account];
         // TODO check again
@@ -225,8 +219,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         require(balanceData.account == account, "Core: Wrong Account");
 
         require(!submittiedCommitments[commitment], "Core: Commitment already deposited");
-
-        // DepositData storage ownerToDepositData = ownerToDeposit[caller];
 
         // only callable by child account(  ie deployer must be factory - address(this))
         // TODO check if we need to include denomination
@@ -271,9 +263,9 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         require(uint256(newCommitment) < FIELD_SIZE, "Core: Commitment Out of Range");
         require(newCommitment != bytes32(0), "Core: Invalid commitment");
 
-        require(accountCurrentNumber > 0, "Core: Schelling > No Account added");
+        require(getAccountCurrentNumber() > 0, "Core: Schelling > No Account added");
         require(
-            accountCurrentNumber >= accountSchellingNumber, "Core: Schelling >= CurrentNumber : Do commit via router"
+            getAccountCurrentNumber() >= accountSchellingNumber, "Core: Schelling >= CurrentNumber : Do commit via router"
         );
 
         // TODO Remove this block? as we may only need `ownerToDeposit`
@@ -482,10 +474,9 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
 
         // todo add rule to use whether getBottomAccount() or getTop()
         address accountToWithdraw = getBottomAccount();
-
+        
         if (accountToWithdraw.balance == amountOut) {
             _removeAccount(accountToWithdraw);
-            // todo add rule to use whether getBottomAccount() or getTop()
         } else {
             _reduceBalance(accountToWithdraw, amountOut);
         }
@@ -493,14 +484,8 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         IAccount(payable(accountToWithdraw)).withdraw_callback(address(this), _recipient, amountOut);
     }
 
-    function _addAccount(address account, uint256 balance) internal override {
-        super._addAccount(account, balance);
-        accountCurrentNumber++;
-    }
-
-    function _removeAccount(address account) internal override {
-        super._removeAccount(account);
-        accountCurrentNumber--;
+    function getAccountCurrentNumber() public view returns (uint256) {
+        return listSize;
     }
 
     function getBottomAccount() public view override(IPoolsCounterBalancer, SortedList) returns (address) {
