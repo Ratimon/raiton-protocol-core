@@ -475,7 +475,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         // todo add rule to use whether getBottomAccount() or getTop()
         address accountToWithdraw = getBottomAccount();
         
-        if (accountToWithdraw.balance == amountOut) {
+        if (getBalance(accountToWithdraw) == amountOut) {
             _removeAccount(accountToWithdraw);
         } else {
             _reduceBalance(accountToWithdraw, amountOut);
