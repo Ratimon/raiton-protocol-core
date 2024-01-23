@@ -139,7 +139,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
         require(commitment != bytes32(0), "Core: Invalid commitment");
 
-        require(getAccountCurrentNumber() <= accountSchellingNumber, "Core: Account already exceeds");
+        require(isUnderWater(), "Core: Account already exceeds");
 
         // TODO : the loop number will depends on the schelling point
         // TODO add more scenarios
@@ -205,9 +205,8 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         uint256 amountIn
     ) external payable override {
         require(uint256(commitment) < FIELD_SIZE, "Core: Commitment Out of Range");
-        // ??
         require(commitment != bytes32(0), "Core: Invalid commitment");
-        require(getAccountCurrentNumber() < accountSchellingNumber, "Core: Schelling < CurrentNumber : Do commit via router");
+        require(isUnderWater(), "Core: Schelling < CurrentNumber : Do commit via router");
 
         BalanceData storage balanceData = pendingBalance[account];
         // TODO check again
@@ -265,7 +264,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
 
         require(getAccountCurrentNumber() > 0, "Core: Schelling > No Account added");
         require(
-            getAccountCurrentNumber() >= accountSchellingNumber, "Core: Schelling >= CurrentNumber : Do commit via router"
+            !isUnderWater(), "Core: Schelling >= CurrentNumber : Do commit via router"
         );
 
         // TODO Remove this block? as we may only need `ownerToDeposit`
@@ -496,6 +495,10 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         return denomination;
     }
 
+    function isUnderWater() public view returns (bool) {
+        return getAccountCurrentNumber() < accountSchellingNumber;
+    }
+
     function getPendingCommitmentToDeposit(address account) external view returns (bytes32) {
         return pendingBalance[account].commitment;
     }
@@ -541,7 +544,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     }
 
     function getIsNullified(bytes32 nullifier) external view returns (bool) {
-        // return ownerToWithdraw[owner].isNullified;
         return nullifierHashes[nullifier];
     }
 

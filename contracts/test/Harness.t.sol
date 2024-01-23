@@ -29,6 +29,7 @@ contract SharedHarness is Test {
     IPartialWithdrawVerifier partialWithdrawVerifier;
     Core core;
 
+    //todo refactor to deployment script
     function setUp() public virtual {
         startHoax(deployer, 1 ether);
 
