@@ -406,7 +406,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
 
         // todo remove/switch lines
         require(!nullifierHashes[_nullifierHash], "Core: The note has been already spent");
-        
         require(withdrawData.withdrawnAmount < denomination, "Core: Withdrawn Amount already exceeded");
         require( withdrawData.lastUpdateTime != 0, "Core: Must initiate the process first" );
         require( (block.timestamp - withdrawData.lastUpdateTime > 1 days), "Core: Withdrawal period not reached" );
@@ -471,8 +470,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
             delete withdrawData.previousNullifierHash;
         }
 
-        // todo add rule to use whether getBottomAccount() or getTop()
-        address accountToWithdraw = getBottomAccount();
+        address accountToWithdraw = isUnderWater() ? getTopAccount(1)[0] :  getBottomAccount() ;
         
         if (getBalance(accountToWithdraw) == amountOut) {
             _removeAccount(accountToWithdraw);
