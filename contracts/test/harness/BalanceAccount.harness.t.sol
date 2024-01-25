@@ -7,8 +7,6 @@ import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
 import {IPartialWithdrawVerifier} from "@main/interfaces/IPartialWithdrawVerifier.sol";
 import {IAccount} from "@main/interfaces/IAccount.sol";
 
-// import {BalanceAccountAddress} from "@main/libraries/AccountAddress.sol";
-
 import {Core} from "@main/Core.sol";
 import {BalanceAccount} from "@main/BalanceAccount.sol";
 
@@ -24,7 +22,6 @@ contract BalanceAccountHarness is SharedHarness {
         vm.label(address(this), "BalanceAccountHarness");
     }
 
-    //todo refactor to different Account file , Core.harness , BalanceAccount.harness shared.harness
     function assertAccount(
         address user,
         address account,

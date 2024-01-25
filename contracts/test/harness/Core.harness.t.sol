@@ -202,7 +202,7 @@ contract CoreHarness is SharedHarness {
         vm.stopPrank();
     }
 
-    event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
+    event Deposit(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
 
     struct DepositStruct {
         address user;
@@ -263,7 +263,7 @@ contract CoreHarness is SharedHarness {
             checkData: true,
             emitter: address(core)
         });
-        emit Insert(depositStruct.commitment, _preRootIndex, block.timestamp);
+        emit Deposit(depositStruct.commitment, _preRootIndex, block.timestamp);
         core.deposit(depositProof, newRoot);
 
         assertTrue(core.getSubmittiedCommitment(depositStruct.commitment));
@@ -302,7 +302,7 @@ contract CoreHarness is SharedHarness {
         return pushedCommitments;
     }
 
-    event Showtime(bytes32 indexed nullifierHash, address recipient, uint256 timestamp);
+    event Showtime(bytes32 nullifierHash, address recipient, uint256 timestamp);
     function init_1stPhase_WithdrawAndAssertCore(address relayer, address user, bytes32 nullifierHash) internal {
 
         vm.startPrank(relayer);
@@ -326,6 +326,8 @@ contract CoreHarness is SharedHarness {
         vm.stopPrank();
         
     }
+
+    event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
 
     struct PartialWithdrawStruct {
         address relayer;
@@ -386,6 +388,15 @@ contract CoreHarness is SharedHarness {
 
         uint256 preWithdrawAccountBalance = core.getBalance(partialWithdrawStruct.accountToWithdraw);
         
+        vm.expectEmit({
+            checkTopic1: false,
+            checkTopic2: false,
+            checkTopic3: true,
+            checkData: true,
+            emitter: address(core)
+        });
+        emit Withdrawal(partialWithdrawStruct.user, partialWithdrawStruct.nullifierHash, partialWithdrawStruct.relayer, partialWithdrawStruct.fee);
+        emit Deposit(partialWithdrawStruct.commitment, core.currentRootIndex(), block.timestamp);
         core.withdraw(
             partialWithdrawProof,
             root,
@@ -419,7 +430,6 @@ contract CoreHarness is SharedHarness {
         assertEq(preWithdrawAccountBalance - core.getBalance(partialWithdrawStruct.accountToWithdraw), partialWithdrawStruct.amountToWithdraw);
 
         vm.stopPrank();
-
 
         delete commitments;
         commitments =  partialWithdrawStruct.pushedCommitments;

@@ -101,8 +101,10 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     event Create(bytes32 indexed commitment, uint256 cashInflows, uint256 cashOutflows, uint256 nonce);
     event Commit(bytes32 indexed commitment, address indexed account, uint256 amountIn, uint256 timestamp);
     event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);
-    event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
-    event Showtime(bytes32 indexed nullifierHash, address recipient, uint256 timestamp);
+    event Showtime(bytes32 nullifierHash, address recipient, uint256 timestamp);
+
+    event Deposit(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
+    event Withdrawal(address to, bytes32 nullifierHash, address indexed relayer, uint256 fee);
 
     constructor(
         IDepositVerifier _depositVerifier,
@@ -366,7 +368,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
             delete pendingBalance[accounts[i]];
         }
 
-        emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
+        emit Deposit(_pendingCommitment, _nextIndex, block.timestamp);
     }
 
     function init_1stPhase_Withdraw(bytes32 nullifierHash, address recipient) external {
@@ -476,6 +478,9 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         } else {
             _reduceBalance(accountToWithdraw, amountOut);
         }
+
+        emit Withdrawal(_recipient, _nullifierHash, _relayer, _fee);
+        emit Deposit(_newCommitmentHash, _nextIndex, block.timestamp);
 
         IAccount(payable(accountToWithdraw)).withdraw_callback(address(this), _recipient, amountOut);
     }
