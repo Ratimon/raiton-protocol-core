@@ -11,10 +11,11 @@ import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 
-import {SharedHarness} from "@test/Harness.t.sol";
+import {BalanceAccountHarness} from "@test/BalanceAccount.harness.t.sol";
+import {CoreHarness} from "@test/Core.harness.t.sol";
 
-contract BalanceAccountTest is SharedHarness {
-    function setUp() public virtual override {
+contract BalanceAccountTest is BalanceAccountHarness, CoreHarness {
+    function setUp() public virtual override(BalanceAccountHarness, CoreHarness ) {
         super.setUp();
         vm.label(address(this), "BalanceAccountTest");
     }

@@ -9,18 +9,14 @@ import {IAccount} from "@main/interfaces/IAccount.sol";
 import {Core} from "@main/Core.sol";
 import {BalanceAccount} from "@main/BalanceAccount.sol";
 
-import {SharedHarness} from "@test/Harness.t.sol";
+import {BalanceAccountHarness} from "@test/BalanceAccount.harness.t.sol";
+import {CoreHarness} from "@test/Core.harness.t.sol";
 
-contract CoreTest is SharedHarness {
+contract CoreTest is BalanceAccountHarness, CoreHarness {
 
-    uint256 public staticTime;
-    function setUp() public virtual override {
+    function setUp() public virtual override(BalanceAccountHarness, CoreHarness ) {
         super.setUp();
         vm.label(address(this), "CoreTest");
-
-        staticTime = block.timestamp;
-
-        vm.warp({newTimestamp: staticTime});
     }
 
     function test_initiate_1stPhase_Account() external {

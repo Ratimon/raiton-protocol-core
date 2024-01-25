@@ -15,39 +15,13 @@ import {BalanceAccount} from "@main/BalanceAccount.sol";
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 import {Groth16Verifier as PartialWithdrawVerifier} from "@main/verifiers/PartialWithdrawVerifier.sol";
 
-contract SharedHarness is Test {
-    string mnemonic = "test test test test test test test test test test test junk";
-    uint256 deployerPrivateKey = vm.deriveKey(mnemonic, "m/44'/60'/0'/0/", 1); //  address = 0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+import {SharedHarness} from "@test/Shared.harness.t.sol";
 
-    address deployer = vm.addr(deployerPrivateKey);
-    address alice = makeAddr("Alice");
-    address bob = makeAddr("Bob");
-    address carol = makeAddr("Carol");
-    address dave = makeAddr("Dave");
+contract CoreHarness is SharedHarness {
 
-    address relayer_signer = makeAddr("Relayer");
-
-    IDepositVerifier depositVerifier;
-    IPartialWithdrawVerifier partialWithdrawVerifier;
-    Core core;
-
-    //todo refactor to deployment script
-    function setUp() public virtual {
-        startHoax(deployer, 1 ether);
-
-        vm.label(deployer, "Deployer");
-        vm.label(alice, "Alice");
-        vm.label(bob, "Bob");
-        vm.label(carol, "Carol");
-        vm.label(dave, "Dave");
-
-        depositVerifier = IDepositVerifier(address(new DepositGroth16Verifier()));
-        partialWithdrawVerifier = IPartialWithdrawVerifier(address(new PartialWithdrawVerifier()));
-
-        core = new Core(depositVerifier, partialWithdrawVerifier, 20, 1 ether, 4);
-        vm.label(address(core), "Core");
-
-        vm.stopPrank();
+    function setUp() public virtual override {
+        super.setUp();
+        vm.label(address(this), "CoreHarness");
     }
 
     struct DeployReturnStruct {
@@ -94,29 +68,6 @@ contract SharedHarness is Test {
             assertEq(core.getPendingCommitmentToDeposit(accounts[i]), commitment);
             assertEq(core.getPendingAccountToDeposit(accounts[i]), deployReturns[i].account);
         }
-
-        vm.stopPrank();
-    }
-
-    //todo refactor to different Account file , Core.harness , BalanceAccount.harness shared.harness
-    function assertAccount(
-        address user,
-        address account,
-        bytes32 commitment,
-        uint256 amount,
-        uint256 nonce,
-        uint256 inflow,
-        uint256 outflow
-    ) internal {
-        vm.startPrank(user);
-
-        IAccount balanceAccount = IAccount(account);
-
-        assertEq32(balanceAccount.commitment(), commitment);
-        assertEq(balanceAccount.denomination(), amount);
-        assertEq(balanceAccount.cashInflows(), inflow);
-        assertEq(balanceAccount.cashOutflows(), outflow);
-        assertEq(balanceAccount.nonce(), nonce);
 
         vm.stopPrank();
     }
