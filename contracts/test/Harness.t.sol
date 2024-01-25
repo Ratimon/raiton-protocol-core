@@ -7,6 +7,8 @@ import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
 import {IPartialWithdrawVerifier} from "@main/interfaces/IPartialWithdrawVerifier.sol";
 import {IAccount} from "@main/interfaces/IAccount.sol";
 
+// import {BalanceAccountAddress} from "@main/libraries/AccountAddress.sol";
+
 import {Core} from "@main/Core.sol";
 import {BalanceAccount} from "@main/BalanceAccount.sol";
 
@@ -53,12 +55,26 @@ contract SharedHarness is Test {
         uint256 nonce;
     }
 
+    event Create(bytes32 indexed commitment, uint256 cashInflows, uint256 cashOutflows, uint256 nonce);
     function deployAndAssertCore(address user, bytes32 commitment)
         internal
         returns (DeployReturnStruct[] memory deployReturns)
     {
         vm.startPrank(user);
 
+        //todo implement account
+        // BalanceAccountAddress.computeAddress(address(core), commitment, 0);
+        vm.expectEmit({
+            checkTopic1: true,
+            checkTopic2: false,
+            checkTopic3: false,
+            checkData: true,
+            emitter: address(core)
+        });
+        emit Create(commitment, 1, 4, 0);
+        emit Create(commitment, 1, 4, 1);
+        emit Create(commitment, 1, 4, 2);
+        emit Create(commitment, 1, 4, 3);
         address[] memory accounts = core.initiate_1stPhase_Account(commitment);
 
         deployReturns = new DeployReturnStruct[](accounts.length);
@@ -82,6 +98,7 @@ contract SharedHarness is Test {
         vm.stopPrank();
     }
 
+    //todo refactor to different Account file , Core.harness , BalanceAccount.harness shared.harness
     function assertAccount(
         address user,
         address account,

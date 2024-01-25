@@ -66,12 +66,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     uint256 rotateCounter;
     uint256 rotateCounterCumulativeLast;
 
-    event Commit(bytes32 indexed commitment, address indexed account, uint256 amountIn, uint256 timestamp);
-    event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);
-    event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
-
-    // TODO Add Deposit & Withdrawal events
-
     struct BalanceData {
         bytes32 commitment;
         uint256 committedAmount;
@@ -102,6 +96,12 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         uint256[2][2] b;
         uint256[2] c;
     }
+
+    // TODO Add Deposit & Withdrawal events
+    event Create(bytes32 indexed commitment, uint256 cashInflows, uint256 cashOutflows, uint256 nonce);
+    event Commit(bytes32 indexed commitment, address indexed account, uint256 amountIn, uint256 timestamp);
+    event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);
+    event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
 
     constructor(
         IDepositVerifier _depositVerifier,
@@ -188,8 +188,9 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
             balanceData.account = account;
 
             accounts[i] = account;
-
             // TODO emit event
+
+            emit Create(commitment, 1, paymentNumber, i);
         }
         // return accounts;
     }
