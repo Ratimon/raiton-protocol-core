@@ -72,6 +72,7 @@ contract CoreHarness is SharedHarness {
         vm.stopPrank();
     }
 
+    event Commit(bytes32 indexed commitment, address indexed account, uint256 amountIn, uint256 timestamp);
     function commitNewAndAssertCore(
         address user,
         address[] memory preAccounts,
@@ -90,6 +91,14 @@ contract CoreHarness is SharedHarness {
 
         assertEq(core.getOwnerAccounts(user), preAccounts);
 
+        vm.expectEmit({
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: false,
+            checkData: true,
+            emitter: address(core)
+        });
+        emit Commit(commitment,newAccount, amount, block.timestamp);
         uint256 returningAmount = IAccount(newAccount).commitNew_2ndPhase{value: amount}();
         assertEq(returningAmount, amount);
 

@@ -188,11 +188,8 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
             balanceData.account = account;
 
             accounts[i] = account;
-            // TODO emit event
-
             emit Create(commitment, 1, paymentNumber, i);
         }
-        // return accounts;
     }
 
     /**
