@@ -292,7 +292,6 @@ contract CoreHarness is SharedHarness {
             );
         }
         delete preDepositAccountBalances;
-
         vm.stopPrank();
 
         pushedCommitments = new bytes32[](depositStruct.existingCommitments.length + 1);
@@ -303,6 +302,7 @@ contract CoreHarness is SharedHarness {
         return pushedCommitments;
     }
 
+    event Showtime(bytes32 indexed nullifierHash, address recipient, uint256 timestamp);
     function init_1stPhase_WithdrawAndAssertCore(address relayer, address user, bytes32 nullifierHash) internal {
 
         vm.startPrank(relayer);
@@ -310,6 +310,14 @@ contract CoreHarness is SharedHarness {
         assertTrue(!core.getIsNullifierInited(nullifierHash));
         assertEq(core.getLastWithdrawTime(user) , 0);
 
+        vm.expectEmit({
+            checkTopic1: true,
+            checkTopic2: false,
+            checkTopic3: false,
+            checkData: true,
+            emitter: address(core)
+        });
+        emit Showtime(nullifierHash, user, block.timestamp);
         core.init_1stPhase_Withdraw( nullifierHash, user);
 
         assertTrue(core.getIsNullifierInited(nullifierHash));

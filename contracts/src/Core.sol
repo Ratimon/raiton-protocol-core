@@ -102,6 +102,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     event Commit(bytes32 indexed commitment, address indexed account, uint256 amountIn, uint256 timestamp);
     event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);
     event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
+    event Showtime(bytes32 indexed nullifierHash, address recipient, uint256 timestamp);
 
     constructor(
         IDepositVerifier _depositVerifier,
@@ -381,6 +382,8 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         pendingNullifierHashes[nullifierHash] = true;
 
         //todo inplement charging fee
+
+        emit Showtime(nullifierHash, recipient, block.timestamp);
     }
 
     /**
