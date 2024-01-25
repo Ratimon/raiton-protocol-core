@@ -202,6 +202,8 @@ contract CoreHarness is SharedHarness {
         vm.stopPrank();
     }
 
+    event Insert(bytes32 indexed commitment, uint256 leafIndex, uint256 timestamp);
+
     struct DepositStruct {
         address user;
         address[] preAccounts;
@@ -254,7 +256,14 @@ contract CoreHarness is SharedHarness {
             preDepositAccountBalances[i] = core.getBalance(depositStruct.preAccounts[i]);
         }
 
-        //todo: assert emit
+        vm.expectEmit({
+            checkTopic1: true,
+            checkTopic2: false,
+            checkTopic3: false,
+            checkData: true,
+            emitter: address(core)
+        });
+        emit Insert(depositStruct.commitment, _preRootIndex, block.timestamp);
         core.deposit(depositProof, newRoot);
 
         assertTrue(core.getSubmittiedCommitment(depositStruct.commitment));
