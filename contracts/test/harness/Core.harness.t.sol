@@ -7,8 +7,6 @@ import {IDepositVerifier} from "@main/interfaces/IDepositVerifier.sol";
 import {IPartialWithdrawVerifier} from "@main/interfaces/IPartialWithdrawVerifier.sol";
 import {IAccount} from "@main/interfaces/IAccount.sol";
 
-// import {BalanceAccountAddress} from "@main/libraries/AccountAddress.sol";
-
 import {Core} from "@main/Core.sol";
 import {BalanceAccount} from "@main/BalanceAccount.sol";
 
@@ -36,8 +34,6 @@ contract CoreHarness is SharedHarness {
     {
         vm.startPrank(user);
 
-        //todo implement account
-        // BalanceAccountAddress.computeAddress(address(core), commitment, 0);
         vm.expectEmit({
             checkTopic1: true,
             checkTopic2: false,
@@ -138,6 +134,14 @@ contract CoreHarness is SharedHarness {
 
         assertEq(core.getOwnerAccounts(user), preAccounts);
 
+        vm.expectEmit({
+            checkTopic1: true,
+            checkTopic2: true,
+            checkTopic3: false,
+            checkData: true,
+            emitter: address(core)
+        });
+        emit Commit(newCommitment, bottomAccount, amountToCommit, block.timestamp);
         uint256 returningAmount =
             IAccount(bottomAccount).commitExisting_2ndPhase{value: amountToCommit}(alice, newCommitment);
         assertEq(returningAmount, amountToCommit);
