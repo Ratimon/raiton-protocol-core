@@ -252,7 +252,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         uint256 nonce,
         uint256 amountIn
     ) external payable override {
-        // todo add rule to use whether getBottomAccount() or getTop()
         require(account == getBottomAccount(), "Core: Only callable from bottom account");
 
         require(uint256(existingCommitment) < FIELD_SIZE, "Core: Commitment Out of Range");
