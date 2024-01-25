@@ -47,7 +47,7 @@ contract BalanceAccountTest is BalanceAccountHarness, CoreHarness {
         startHoax(alice, committedAmount);
 
         bytes32 commitment = bytes32(uint256(1));
-        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+        address[] memory accounts = core.init_1stPhase_Account(commitment);
 
         BalanceAccount balanceAccount = BalanceAccount(accounts[0]);
 
@@ -69,7 +69,7 @@ contract BalanceAccountTest is BalanceAccountHarness, CoreHarness {
         startHoax(alice, committedAmount);
 
         bytes32 commitment = bytes32(uint256(1));
-        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+        address[] memory accounts = core.init_1stPhase_Account(commitment);
 
         BalanceAccount balanceAccount = BalanceAccount(accounts[0]);
         balanceAccount.commitNew_2ndPhase{value: committedAmount}();

@@ -19,7 +19,7 @@ contract CoreTest is BalanceAccountHarness, CoreHarness {
         vm.label(address(this), "CoreTest");
     }
 
-    function test_initiate_1stPhase_Account() external {
+    function test_init_1stPhase_Account() external {
         //commitment hash =  poseidonHash(nullifier, 0, denomination)
         //nullifer hash =  poseidonHash(nullifier, 1, leafIndex, denomination)
 
@@ -170,7 +170,7 @@ contract CoreTest is BalanceAccountHarness, CoreHarness {
         delete ownerAccounts;
     }
 
-    function test_initWithdrawProcess() external {
+    function test_init_1stPhase_Withdraw() external {
         uint256 newLeafIndex = 0;
         uint256 totalDepositAmount = 1 ether;
         uint256 committedAmount = 0.25 ether; // 1 / 4  ether;
@@ -212,7 +212,7 @@ contract CoreTest is BalanceAccountHarness, CoreHarness {
         );
         delete ownerAccounts;
 
-        initWithdrawProcessAndAssertCore( relayer_signer, alice, nullifierHash);
+        init_1stPhase_WithdrawAndAssertCore( relayer_signer, alice, nullifierHash);
 
     }
 
@@ -271,7 +271,7 @@ contract CoreTest is BalanceAccountHarness, CoreHarness {
 
         uint256 preWithdrawToBalance = alice.balance;
 
-        initWithdrawProcessAndAssertCore( relayer_signer, alice, nullifierHash);
+        init_1stPhase_WithdrawAndAssertCore( relayer_signer, alice, nullifierHash);
         vm.warp({newTimestamp: staticTime + 2 days});
 
         pushedCommitments = partialWithdrawAndAssertCore(
@@ -374,7 +374,7 @@ contract CoreTest is BalanceAccountHarness, CoreHarness {
 
         uint256 preWithdrawToBalance = alice.balance;
 
-        initWithdrawProcessAndAssertCore( relayer_signer, alice, nullifierHash);
+        init_1stPhase_WithdrawAndAssertCore( relayer_signer, alice, nullifierHash);
         vm.warp({newTimestamp: staticTime + 2 days});
 
         pushedCommitments = partialWithdrawAndAssertCore(

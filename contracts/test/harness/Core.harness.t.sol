@@ -45,7 +45,7 @@ contract CoreHarness is SharedHarness {
         emit Create(commitment, 1, 4, 1);
         emit Create(commitment, 1, 4, 2);
         emit Create(commitment, 1, 4, 3);
-        address[] memory accounts = core.initiate_1stPhase_Account(commitment);
+        address[] memory accounts = core.init_1stPhase_Account(commitment);
 
         deployReturns = new DeployReturnStruct[](accounts.length);
         IAccount account;
@@ -303,14 +303,14 @@ contract CoreHarness is SharedHarness {
         return pushedCommitments;
     }
 
-    function initWithdrawProcessAndAssertCore(address relayer, address user, bytes32 nullifierHash) internal {
+    function init_1stPhase_WithdrawAndAssertCore(address relayer, address user, bytes32 nullifierHash) internal {
 
         vm.startPrank(relayer);
 
         assertTrue(!core.getIsNullifierInited(nullifierHash));
         assertEq(core.getLastWithdrawTime(user) , 0);
 
-        core.initWithdrawProcess( nullifierHash, user);
+        core.init_1stPhase_Withdraw( nullifierHash, user);
 
         assertTrue(core.getIsNullifierInited(nullifierHash));
         assertEq(core.getLastWithdrawTime(user) , block.timestamp);

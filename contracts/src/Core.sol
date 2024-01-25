@@ -131,7 +131,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
     /**
      * @dev deploy  numbers of account based on the schelling point
      */
-    function initiate_1stPhase_Account(bytes32 commitment)
+    function init_1stPhase_Account(bytes32 commitment)
         external
         noDelegateCall
         returns (address[] memory accounts)
@@ -368,7 +368,7 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         emit Insert(_pendingCommitment, _nextIndex, block.timestamp);
     }
 
-    function initWithdrawProcess(bytes32 nullifierHash, address recipient) external {
+    function init_1stPhase_Withdraw(bytes32 nullifierHash, address recipient) external {
         WithdrawData storage withdrawData = ownerToWithdraw[recipient];
         // require(!withdrawData.isNullified, "Core: Already Withdraw");
 
@@ -377,7 +377,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
 
         //todo start with full denomination amount
         //todo so, allow double deposit?
-
         withdrawData.lastUpdateTime = block.timestamp;
         pendingNullifierHashes[nullifierHash] = true;
 

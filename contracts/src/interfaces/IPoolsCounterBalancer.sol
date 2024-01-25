@@ -2,7 +2,7 @@
 pragma solidity =0.8.20;
 
 interface IPoolsCounterBalancer {
-    function initiate_1stPhase_Account(bytes32 commitment) external returns (address[] memory accounts);
+    function init_1stPhase_Account(bytes32 commitment) external returns (address[] memory accounts);
 
     function commitNew_2ndPhase_Callback(
         address caller,
