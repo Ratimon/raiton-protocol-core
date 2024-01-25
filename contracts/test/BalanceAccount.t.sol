@@ -11,8 +11,8 @@ import {BalanceAccount} from "@main/BalanceAccount.sol";
 
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 
-import {BalanceAccountHarness} from "@test/BalanceAccount.harness.t.sol";
-import {CoreHarness} from "@test/Core.harness.t.sol";
+import {BalanceAccountHarness} from "@test/harness/BalanceAccount.harness.t.sol";
+import {CoreHarness} from "@test/harness/Core.harness.t.sol";
 
 contract BalanceAccountTest is BalanceAccountHarness, CoreHarness {
     function setUp() public virtual override(BalanceAccountHarness, CoreHarness ) {

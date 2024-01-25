@@ -9,8 +9,8 @@ import {IAccount} from "@main/interfaces/IAccount.sol";
 import {Core} from "@main/Core.sol";
 import {BalanceAccount} from "@main/BalanceAccount.sol";
 
-import {BalanceAccountHarness} from "@test/BalanceAccount.harness.t.sol";
-import {CoreHarness} from "@test/Core.harness.t.sol";
+import {BalanceAccountHarness} from "@test/harness/BalanceAccount.harness.t.sol";
+import {CoreHarness} from "@test/harness/Core.harness.t.sol";
 
 contract CoreTest is BalanceAccountHarness, CoreHarness {
 

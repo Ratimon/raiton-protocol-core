@@ -15,7 +15,7 @@ import {BalanceAccount} from "@main/BalanceAccount.sol";
 import {Groth16Verifier as DepositGroth16Verifier} from "@main/verifiers/DepositVerifier.sol";
 import {Groth16Verifier as PartialWithdrawVerifier} from "@main/verifiers/PartialWithdrawVerifier.sol";
 
-import {SharedHarness} from "@test/Shared.harness.t.sol";
+import {SharedHarness} from "@test/harness/Shared.harness.t.sol";
 
 contract CoreHarness is SharedHarness {
 
