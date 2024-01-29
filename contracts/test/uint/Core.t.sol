@@ -33,7 +33,6 @@ contract CoreTest is BalanceAccountHarness, CoreHarness {
     }
 
     address[] ownerAccounts;
-
     function test_commitNew_2ndPhase_Callback() external {
         uint256 newLeafIndex = 0;
         uint256 denomination = 1 ether;
@@ -55,7 +54,6 @@ contract CoreTest is BalanceAccountHarness, CoreHarness {
             commitNewAndAssertCore(alice, ownerAccounts, deployReturns[2].account, commitment, 2, committedAmount);
         ownerAccounts =
             commitNewAndAssertCore(alice, ownerAccounts, deployReturns[3].account, commitment, 3, committedAmount);
-            
         delete ownerAccounts;
     }
 
