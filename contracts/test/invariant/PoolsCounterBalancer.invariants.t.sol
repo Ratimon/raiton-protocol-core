@@ -22,8 +22,6 @@ contract PoolsCounterBalancerInvariants is StdInvariant, Test, CoreHarness {
         super.setUp();
         vm.label(address(this), "CorPoolsCounterBalancerInvariantseTest");
 
-        console2.log("core",address(core));
-
         handler = new MixerHandler(address(core));
 
         bytes4[] memory selectors = new bytes4[](1);
@@ -36,7 +34,7 @@ contract PoolsCounterBalancerInvariants is StdInvariant, Test, CoreHarness {
 
     // ETH can only be deposited into Core, WETH can only
     // be withdrawn back into recepient. The sum of the Handler's
-    // ETH balance plus the Core balance  state should always
+    // ETH balance plus the Core balance state should always
     // equal the total ETH_SUPPLY.
     function invariant_conservationOfETH() public {
         assertEq(ETH_SUPPLY, address(handler).balance );

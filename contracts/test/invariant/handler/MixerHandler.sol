@@ -67,15 +67,11 @@ contract MixerHandler is CoreHarness {
         uint256 newLeafIndex = 0;
         (bytes32 commitment,, bytes32 nullifier) =
             abi.decode(getDepositCommitmentHash(newLeafIndex, denomination), (bytes32, bytes32, bytes32));
-
-        console2.log("core - ", address(_core));
         
         address[] memory accounts = _core.init_1stPhase_Account(commitment);
 
         //commit
         for (uint256 i = 0; i < accounts.length; i++) {
-
-            console2.log("accounts[i]",accounts[i]);
             IAccount(accounts[i]).commitNew_2ndPhase{value: 0.25 ether}();
     
         }
