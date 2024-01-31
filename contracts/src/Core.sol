@@ -97,7 +97,6 @@ contract Core is ICore, SortedList, IPoolsCounterBalancer, AccountDeployer, NoDe
         uint256[2] c;
     }
 
-    // TODO Add Deposit & Withdrawal events
     event Create(bytes32 indexed commitment, uint256 cashInflows, uint256 cashOutflows, uint256 nonce);
     event Commit(bytes32 indexed commitment, address indexed account, uint256 amountIn, uint256 timestamp);
     event Clear(bytes32 indexed commitment, address indexed account, uint256 timestamp);

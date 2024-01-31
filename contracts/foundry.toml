@@ -5,8 +5,15 @@ libs = ["lib"]
 ffi = true
 solc_version = '0.8.20'
 evm_version = 'paris'
+fuzz_runs = 1000
+
+[invariant]
+call_override = false  # Override calls
+runs          = 10    # The number of times to run the invariant tests
+depth         = 1   # The number of calls to make in the invariant tests
+fail_on_revert = true
 
 [fmt]
-ignore = ['generated/**/*.sol', "lib/**/*.sol"]
+ignore = ["lib/**/*.sol"]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
