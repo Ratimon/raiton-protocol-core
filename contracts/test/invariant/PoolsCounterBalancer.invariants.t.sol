@@ -36,10 +36,12 @@ contract PoolsCounterBalancerInvariants is StdInvariant, Test, CoreHarness {
     // ETH balance plus the Core balance state ( sum of each of account state ) should always
     // equal the total ETH_SUPPLY.
     function invariant_conservationOfETH() public {
-        assertEq(ETH_SUPPLY, address(handler).balance );
-        // assertEq(ETH_SUPPLY, address(handler).balance + toal );
+        uint256 sumOfAccountState = handler.reduceAccounts(0, this.accumulateState);
+        console2.log("ETH_SUPPLY", ETH_SUPPLY);
+        console2.log("sumOfAccountState", sumOfAccountState);
+        console2.log("handler", address(handler).balance);
+        assertEq(ETH_SUPPLY, address(handler).balance + sumOfAccountState );
     }
-
 
     // 1) aggregator of all accounts balance ()
     // 2) aggregator of all accounts state ()
@@ -56,8 +58,8 @@ contract PoolsCounterBalancerInvariants is StdInvariant, Test, CoreHarness {
     // The sum of individual Account balances  should always be
     // at least as much as the sum of individual accounts state
     function invariant_solvencyBalances() public {
-        uint256 sumOfAccountBalanceOf = handler.reduceActors(0, this.accumulateBalanceOf);
-        uint256 sumOfAccountState = handler.reduceActors(0, this.accumulateState);
+        uint256 sumOfAccountBalanceOf = handler.reduceAccounts(0, this.accumulateBalanceOf);
+        uint256 sumOfAccountState = handler.reduceAccounts(0, this.accumulateState);
         assertEq(sumOfAccountBalanceOf , sumOfAccountState);
     }
 
@@ -67,7 +69,7 @@ contract PoolsCounterBalancerInvariants is StdInvariant, Test, CoreHarness {
     }
 
     function accumulateState(uint256 balance, address account) external view returns (uint256) {
-        return balance + account.balance;
+        return balance + core.getBalance(account) ;
     }
 
 }

@@ -31,6 +31,8 @@ contract MixerHandler is CoreHarness {
     ByteSet internal _nullifierHashes;
     bytes32 internal currentnullifierHash;
 
+    AddressSet internal _accounts;
+
     bytes32[] internal currentExistingCommitments;
 
     modifier createActor() {
@@ -73,7 +75,9 @@ contract MixerHandler is CoreHarness {
         //commit
         for (uint256 i = 0; i < accounts.length; i++) {
             IAccount(accounts[i]).commitNew_2ndPhase{value: 0.25 ether}();
-    
+
+            // add to accounts
+            _accounts.add(accounts[i]);
         }
 
         //deposit
@@ -115,6 +119,13 @@ contract MixerHandler is CoreHarness {
     {
         return _actors.reduce(acc, func);
     }
+
+    function reduceAccounts(uint256 acc, function(uint256,address) external returns (uint256) func)
+    public
+    returns (uint256)
+{
+    return _accounts.reduce(acc, func);
+}
 
     function _pay(address to, uint256 amount) internal {
         (bool s,) = to.call{value: amount}("");
