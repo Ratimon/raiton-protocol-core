@@ -6,7 +6,6 @@ import {StdInvariant} from "@forge-std/StdInvariant.sol";
 
 import {Core} from "@main/Core.sol";
 
-// import {BalanceAccountHarness} from "@test/harness/BalanceAccount.harness.t.sol";
 import {CoreHarness} from "@test/harness/Core.harness.t.sol";
 
 import {MixerHandler, ETH_SUPPLY} from "@test/invariant/handler/MixerHandler.sol";
@@ -34,18 +33,42 @@ contract PoolsCounterBalancerInvariants is StdInvariant, Test, CoreHarness {
 
     // ETH can only be deposited into Core, WETH can only
     // be withdrawn back into recepient. The sum of the Handler's
-    // ETH balance plus the Core balance state should always
+    // ETH balance plus the Core balance state ( sum of each of account state ) should always
     // equal the total ETH_SUPPLY.
     function invariant_conservationOfETH() public {
         assertEq(ETH_SUPPLY, address(handler).balance );
+        // assertEq(ETH_SUPPLY, address(handler).balance + toal );
     }
 
 
-     // totalAccount Number x totalAccount Balance = total ETH_SUPPLY
+    // 1) aggregator of all accounts balance ()
+    // 2) aggregator of all accounts state ()
 
-    //  function invariant_csolvencyDeposits() public {
+    //TODO
+    // totalAccount Number x totalAccount Balance = total ETH_SUPPLY
+
+    //TODO
+    // The sum of individual Account balances should always be
+    // at least as much as the sum of individual deposits
+    //  function invariant_solvencyDeposits() public {
     // }
 
+    // The sum of individual Account balances  should always be
+    // at least as much as the sum of individual accounts state
+    function invariant_solvencyBalances() public {
+        uint256 sumOfAccountBalanceOf = handler.reduceActors(0, this.accumulateBalanceOf);
+        uint256 sumOfAccountState = handler.reduceActors(0, this.accumulateState);
+        assertEq(sumOfAccountBalanceOf , sumOfAccountState);
+    }
+
+
+    function accumulateBalanceOf(uint256 balance, address account) external view returns (uint256) {
+        return balance + account.balance;
+    }
+
+    function accumulateState(uint256 balance, address account) external view returns (uint256) {
+        return balance + account.balance;
+    }
 
 }
 

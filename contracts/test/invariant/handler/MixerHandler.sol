@@ -76,7 +76,6 @@ contract MixerHandler is CoreHarness {
     
         }
 
-    
         //deposit
 
         Core.Proof memory depositProof;
@@ -103,13 +102,18 @@ contract MixerHandler is CoreHarness {
 
         vm.stopPrank();
 
-
-        
     }
 
     function withdraw() public createActor countCall("withdraw") {
 
         
+    }
+
+    function reduceActors(uint256 acc, function(uint256,address) external returns (uint256) func)
+        public
+        returns (uint256)
+    {
+        return _actors.reduce(acc, func);
     }
 
     function _pay(address to, uint256 amount) internal {
