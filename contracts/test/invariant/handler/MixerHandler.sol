@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.20;
 
-import {Test, console2 } from "@forge-std/Test.sol";
+import {Test, console, console2 } from "@forge-std/Test.sol";
 
 import {IAccount} from "@main/interfaces/IAccount.sol";
 
@@ -121,11 +121,20 @@ contract MixerHandler is CoreHarness {
     }
 
     function reduceAccounts(uint256 acc, function(uint256,address) external returns (uint256) func)
-    public
-    returns (uint256)
-{
-    return _accounts.reduce(acc, func);
-}
+        public
+        returns (uint256)
+    {
+        return _accounts.reduce(acc, func);
+    }
+
+    function callSummary() external view {
+        console.log("Call summary:");
+        console.log("-------------------");
+        console.log("deposit", calls["deposit"]);
+        console.log("withdraw", calls["withdraw"]);
+        console.log("-------------------");
+
+    }
 
     function _pay(address to, uint256 amount) internal {
         (bool s,) = to.call{value: amount}("");

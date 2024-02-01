@@ -10,7 +10,6 @@ import {CoreHarness} from "@test/harness/Core.harness.t.sol";
 
 import {MixerHandler, ETH_SUPPLY} from "@test/invariant/handler/MixerHandler.sol";
 
-
 contract PoolsCounterBalancerInvariants is StdInvariant, Test, CoreHarness {
 
     // Core public core;
@@ -37,9 +36,6 @@ contract PoolsCounterBalancerInvariants is StdInvariant, Test, CoreHarness {
     // equal the total ETH_SUPPLY.
     function invariant_conservationOfETH() public {
         uint256 sumOfAccountState = handler.reduceAccounts(0, this.accumulateState);
-        console2.log("ETH_SUPPLY", ETH_SUPPLY);
-        console2.log("sumOfAccountState", sumOfAccountState);
-        console2.log("handler", address(handler).balance);
         assertEq(ETH_SUPPLY, address(handler).balance + sumOfAccountState );
     }
 
@@ -70,6 +66,10 @@ contract PoolsCounterBalancerInvariants is StdInvariant, Test, CoreHarness {
 
     function accumulateState(uint256 balance, address account) external view returns (uint256) {
         return balance + core.getBalance(account) ;
+    }
+
+    function invariant_callSummary() public view {
+        handler.callSummary();
     }
 
 }
